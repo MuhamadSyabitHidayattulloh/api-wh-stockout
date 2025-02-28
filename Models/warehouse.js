@@ -107,35 +107,27 @@ export const stockOutWithoutInstruction = async (data) => {
   const failedData = [];
   let successCount = 0;
   try {
-    for (const item of data) {
-      try {
-        await knex("LS_T_REPORT_MOBILE").insert({
-          pattern: item.pattern,
-          idbox_no: item.idbox_no,
-          timescan_idbox: item.timescan_idbox,
-          partno: item.partno,
-          kbn_seq: item.kbn_seq,
-          qty_kbn_std: item.qty_kbn_std,
-          qty_kbn_act: item.qty_kbn_act,
-          wh_loc: item.wh_loc,
-          line_id: item.line_id,
-          operator: item.operator,
-          status: item.status,
-          complete: item.complete,
-          create_by: item.create_by,
-          create_date: item.create_date,
-          wh_code: item.wh_code,
-        });
-        successCount++;
-      } catch (error) {
-        console.log(error);
-        console.error(
-          "Error inserting stockOutWithoutInstruction data: ",
-          item.error
-        );
-        failedData.push({ ...item, error: error.message });
-      }
-    }
+    const result = data.map((data) => ({
+      transaction_id: data.transaction_id,
+      pattern: data.pattern,
+      idbox_no: data.idbox_no,
+      timescan_idbox: data.timescan_idbox,
+      partno: data.partno,
+      kbn_seq: data.kbn_seq,
+      qty_kbn_std: data.qty_kbn_std,
+      qty_kbn_act: data.qty_kbn_act,
+      wh_loc: data.wh_loc,
+      line_id: data.line_id,
+      operator: data.operator,
+      status: data.status,
+      complete: data.complete,
+      create_by: data.create_by,
+      create_date: data.create_date,
+      wh_code: data.wh_code,
+    }));
+    const submit = await knex("LS_T_REPORT_MOBILE_1").insert(result);
+    console.log(submit);
+    return submit;
   } catch (error) {
     console.error("Error stockOutWithoutInstruction", error);
     throw error;
