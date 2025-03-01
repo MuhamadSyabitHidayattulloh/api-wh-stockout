@@ -8,6 +8,7 @@ import {
   getTotalDataStoraging,
   stockoutInstructionController,
   stockoutWithoutInstructionController,
+  stoctkoutAndroidWHSystem,
 } from "../Controller/warehouse.js";
 
 const router = express.Router();
@@ -41,5 +42,5 @@ router.post(
 router.post("/getCategoryPart", getPartCategoryShopping);
 router.post("/getDetailShoppingList", getDetailShoppingList);
 router.post("/stockOutWithInstruction", stockoutInstructionController);
-
+router.post("/stockoutAndroid", stoctkoutAndroidWHSystem);
 export default router;

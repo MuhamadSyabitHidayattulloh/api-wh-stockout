@@ -18,6 +18,11 @@ export class OneWayKanbanProcessed {
     return uniqueCode;
   }
 
+  getTotalPartNumber() {
+    const partno = this.oneWayKanbanQR.substring(0, 15).trim();
+    return partno;
+  }
+
   getPartNumber() {
     const partnoSuffix = this.oneWayKanbanQR.substring(0, 15).trim();
     const partno = partnoSuffix.endsWith("A")

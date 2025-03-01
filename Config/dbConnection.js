@@ -115,3 +115,18 @@ export const connectDBMasterSequelize = new Sequelize(
     },
   }
 );
+
+export const connectDBWarehouseSequelize = new Sequelize(
+  process.env.DB_NAME_WH,
+  process.env.DB_USERNAME_WH,
+  process.env.DB_PASSWORD_WH,
+  {
+    host: process.env.DB_SERVER_WH,
+    dialect: "mssql",
+    logging: false,
+    dialectOptions: {
+      encrypt: true,
+      trustServerCertificate: true,
+    },
+  }
+);
