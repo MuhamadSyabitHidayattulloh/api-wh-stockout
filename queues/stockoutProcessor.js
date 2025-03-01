@@ -54,6 +54,21 @@ stockoutQueue.process(async (job) => {
     // Update FLAGDX
     await StockoutService.updateFlagDX(NPK, timeScan);
 
+    // Log failed data jika ada
+    if (failedProcessedData.length > 0 || failedLotData.length > 0) {
+      await STOCKOUT_ERROR_LOG.bulkCreate(
+        [...failedProcessedData, ...failedLotData].map((item) => ({
+          NPK: NPK,
+          ERROR_DATE: moment().format("YYYY-MM-DD HH:mm:ss"),
+          ERROR_TYPE: item.error ? "PROCESS_ERROR" : "LOT_ERROR",
+          ERROR_MESSAGE: item.error || "Lot sizing calculation failed",
+          RAW_DATA: JSON.stringify(item),
+          STATUS: "PENDING", // PENDING, RESOLVED, IGNORED
+          CREATED_AT: moment().format("YYYY-MM-DD HH:mm:ss"),
+        }))
+      );
+    }
+
     // Update progress
     await job.progress(100);
 
@@ -64,6 +79,16 @@ stockoutQueue.process(async (job) => {
     };
   } catch (error) {
     console.error("Job processing error:", error);
+    // Log system error
+    await STOCKOUT_ERROR_LOG.create({
+      NPK: NPK,
+      ERROR_DATE: moment().format("YYYY-MM-DD HH:mm:ss"),
+      ERROR_TYPE: "SYSTEM_ERROR",
+      ERROR_MESSAGE: error.message,
+      RAW_DATA: JSON.stringify(data),
+      STATUS: "PENDING",
+      CREATED_AT: moment().format("YYYY-MM-DD HH:mm:ss"),
+    });
     throw error;
   }
 });
