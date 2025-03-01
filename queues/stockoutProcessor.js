@@ -1,5 +1,5 @@
 import Queue from "bull";
-import { redisConfig } from "./config/redis.js";
+import { redisConfig } from "../Config/redis.js";
 import {
   createDataLotSizing,
   stockOutWithoutInstruction,
@@ -31,6 +31,11 @@ stockoutQueue.process(async (job) => {
     // Proses data menggunakan service
     const { processedData, failedProcessedData, lotFormData, failedLotData } =
       await StockoutService.processStockoutData(data, NPK, timeScan);
+
+    // console.log("process data", processedData)
+    // console.log("failed data", failedProcessedData)
+    // console.log("lot form data", lotFormData)
+    // console.log("failed lot data", failedLotData)
 
     // Update progress
     await job.progress(50);

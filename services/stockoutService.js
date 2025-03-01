@@ -1,9 +1,10 @@
 import { OneWayKanbanProcessed } from "../functions/OneWayKanbanProcessed.js";
-import {
-  createDataLotSizing,
-  stockOutWithoutInstruction,
-} from "../Models/warehouse.js";
 import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
+import {
+  getLocationPart,
+  getLineIdPart,
+  getDataMasterLotSizing
+} from "../Models/warehouse.js"
 import moment from "moment";
 
 export class StockoutService {
@@ -21,10 +22,10 @@ export class StockoutService {
         const partno = qrKanban.getPartNumber();
         const uniqueId = qrKanban.getUniqueCode();
         const qty = qrKanban.getQtyPerKanban();
-        const partLoc = await this.getLocationPart(partno);
-        const partLineId = await this.getLineIdPart(partno);
+        const partLoc = await getLocationPart(partno); 
+        const partLineId = await getLineIdPart(partno);
         const whCode = qrKanban.getWhCode();
-        const lotSizeData = await this.getDataMasterLotSizing(partno);
+        const lotSizeData = await getDataMasterLotSizing(partno);
 
         processedData.push({
           pattern: pattern,
