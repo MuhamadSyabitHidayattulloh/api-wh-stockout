@@ -7,6 +7,7 @@ import {
 import { StockoutService } from "../services/stockoutService.js";
 import STOCKOUT_ERROR_LOG from "../Models/STOCKOUT_ERROR_LOG.js";
 import moment from "moment";
+import { literal } from "sequelize";
 
 // Buat queue untuk processing
 const stockoutQueue = new Queue("stockoutProcessing", redisConfig);
@@ -59,18 +60,15 @@ stockoutQueue.process(async (job) => {
     // Log failed data jika ada
     if (failedProcessedData.length > 0 || failedLotData.length > 0) {
 
-      // const currentTime = moment().format("YYYY-MM-DD HH:mm:ss")
-      const currentTime = new Date()
-
       await STOCKOUT_ERROR_LOG.bulkCreate(
         [...failedProcessedData, ...failedLotData].map((item) => ({
           NPK: NPK,
-          ERROR_DATE: currentTime,
+          ERROR_DATE: literal('GETDATE()'),
           ERROR_TYPE: item.error ? "PROCESS_ERROR" : "LOT_ERROR",
           ERROR_MESSAGE: item.error || "Lot sizing calculation failed",
           RAW_DATA: JSON.stringify(item),
           STATUS: "PENDING", // PENDING, RESOLVED, IGNORED
-          CREATED_AT: currentTime
+          CREATED_AT: literal('GETDATE()')
         })), {
           returning: false
         }
@@ -88,19 +86,16 @@ stockoutQueue.process(async (job) => {
     };
   } catch (error) {
     console.error("Job processing error:", error);
-    
-    // const currentTime = moment().format("YYYY-MM-DD HH:mm:ss")
-    const currentTime = new Date()
 
     // Log system error
     await STOCKOUT_ERROR_LOG.create({
       NPK: NPK,
-      ERROR_DATE: currentTime,
+      ERROR_DATE: literal('GETDATE()'),
       ERROR_TYPE: "SYSTEM_ERROR",
       ERROR_MESSAGE: error.message,
       RAW_DATA: JSON.stringify(data),
       STATUS: "PENDING",
-      CREATED_AT: currentTime
+      CREATED_AT: literal('GETDATE()')
     });
     throw error;
   }

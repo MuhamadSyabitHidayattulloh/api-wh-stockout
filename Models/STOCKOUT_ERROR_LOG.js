@@ -1,4 +1,4 @@
-import { DataTypes } from "sequelize";
+import { DataTypes, literal } from "sequelize";
 import { connectDBWarehouseSequelize } from "../Config/dbConnection.js";
 import moment from "moment";
 
@@ -17,9 +17,7 @@ const STOCKOUT_ERROR_LOG = connectDBWarehouseSequelize.define(
     ERROR_DATE: {
       type: DataTypes.DATE,
       allowNull: false,
-      // get() {
-      //   return moment(this.getDataValue("ERROR_DATE"))
-      // }
+      defaultValue: literal('GETDATE()'),
     },
     ERROR_TYPE: {
       type: DataTypes.STRING(20), // PROCESS_ERROR, LOT_ERROR, SYSTEM_ERROR
@@ -52,9 +50,7 @@ const STOCKOUT_ERROR_LOG = connectDBWarehouseSequelize.define(
     CREATED_AT: {
       type: DataTypes.DATE,
       allowNull: false,
-      // get() {
-      //   return moment(this.getDataValue("CREATED_AT"))
-      // }
+      defaultValue: literal('GETDATE()'),
     },
   },
   {
