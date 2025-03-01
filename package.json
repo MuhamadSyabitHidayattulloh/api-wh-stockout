@@ -5,6 +5,8 @@
   "author": "BRAV",
   "license": "MIT",
   "dependencies": {
+    "@bull-board/api": "^6.7.10",
+    "@bull-board/express": "^6.7.10",
     "bcryptjs": "^2.4.3",
     "bunyan": "^1.8.15",
     "compression": "^1.7.4",
@@ -31,7 +33,8 @@
   "type": "module",
   "scripts": {
     "start": "nodemon index.js",
-    "test": "jest --watchAll"
+    "test": "jest --watchAll",
+    "start:monitor": "node monitoring/app.js"
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.24.7",

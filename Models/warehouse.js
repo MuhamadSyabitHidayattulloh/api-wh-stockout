@@ -326,7 +326,7 @@ export const createDataLotSizing = async (data) => {
           status: lot.status,
           wh_code: lot.wh_code,
         };
-        await knex("LS_T_LOT_FORM").insert(result);
+        await knex("LS_T_LOT_FORM_1").insert(result);
       } catch (error) {
         console.log(error);
         console.error("Error inserting lot data: ", lot, error);

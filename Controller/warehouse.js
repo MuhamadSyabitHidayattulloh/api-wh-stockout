@@ -2,6 +2,7 @@ import moment from "moment";
 import { OneWayKanbanProcessed } from "../functions/OneWayKanbanProcessed.js";
 import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
 import {
+  createDataLotSizing,
   getCategoryPart,
   getDataSeparationByOneWayKanbanModels,
   getDataStoragingByOneWayKanbanModels,
@@ -11,6 +12,7 @@ import {
   getShoppingList,
   stockOutWithoutInstruction,
 } from "../Models/warehouse.js";
+import stockoutQueue from "../queues/stockoutProcessor.js";
 
 export const getDataStoragingByOneWayKanban = async (req, res) => {
   try {
@@ -107,6 +109,8 @@ export const stockoutWithoutInstructionController = async (req, res) => {
 
     const processedData = [];
     const failedProcessedData = [];
+    const lotFormData = [];
+    const failedLotData = [];
 
     if (data.length > 0) {
       for (let index = 0; index < data.length; index++) {
@@ -121,6 +125,13 @@ export const stockoutWithoutInstructionController = async (req, res) => {
           const partLineId = await getLineIdPart(partno);
           const whCode = qrKanban.getWhCode();
           const imgData = data[index].imgData;
+          const lotSizeData = await getDataMasterLotSizing(partno);
+          const kbn_scan = 1;
+          const kbn_std = lotSizeData.std_kbn_ro;
+          const qty_scan = lotSizeData.qty_scan;
+          const kbn_lot = lotSizeData.qty_after_ls;
+          const line_id = lotSizeData.ls_table;
+          const status = 1;
 
           processedData.push({
             pattern: pattern,
@@ -139,6 +150,21 @@ export const stockoutWithoutInstructionController = async (req, res) => {
             create_date: timeScan,
             wh_code: whCode,
           });
+
+          if (lotSizeData.lot_sizing > 0) {
+            lotFormData.push({
+              partno: partno,
+              kbn_scan: kbn_scan,
+              kbn_std: kbn_std,
+              qty_scan: qty_scan,
+              kbn_lot: kbn_lot,
+              create_by: data[index.NPK],
+              create_date: timeScan,
+              line_id: line_id,
+              wh_code: whCode,
+              status: status,
+            });
+          }
         } catch (error) {
           console.error(
             `Error processing data with imgData : ${imgData}`,
@@ -150,6 +176,11 @@ export const stockoutWithoutInstructionController = async (req, res) => {
           });
         }
       }
+    }
+
+    if (lotFormData.length > 0) {
+      const lotResult = await createDataLotSizing(lotFormData);
+      failedLotData.push(...lotResult.failedData);
     }
 
     await stockOutWithoutInstruction(processedData);
@@ -275,15 +306,24 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
       };
     });
 
+    // Bulk insert ke database
     await STOCKOUT_T_TRANSACTION_2.bulkCreate(bulkData, { returning: false });
+
+    // Add job ke queue
+    await stockoutQueue.add({
+      data: data,
+      NPK: data[0].NPK,
+      timeScan: data[0].timeScan,
+    });
 
     res.status(200).json({
       msg: "Stockout Success",
     });
   } catch (error) {
+    console.error("Error:", error);
     res.status(400).json({
       msg: "Stockout Failed!",
-      errMsg: Error,
+      errMsg: error,
     });
   }
 };
