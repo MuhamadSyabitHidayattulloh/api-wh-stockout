@@ -1,10 +1,13 @@
+import { Op } from "sequelize";
 import { OneWayKanbanProcessed } from "../functions/OneWayKanbanProcessed.js";
+import LS_T_LOT_FORM_1 from "../Models/LS_T_LOT_FORM_1.js";
 import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
 import {
   getLocationPart,
   getLineIdPart,
-  getDataMasterLotSizing
-} from "../Models/warehouse.js"
+  getDataMasterLotSizing,
+  getDataLotForm,
+} from "../Models/warehouse.js";
 import moment from "moment";
 
 export class StockoutService {
@@ -22,7 +25,7 @@ export class StockoutService {
         const partno = qrKanban.getPartNumber();
         const uniqueId = qrKanban.getUniqueCode();
         const qty = qrKanban.getQtyPerKanban();
-        const partLoc = await getLocationPart(partno); 
+        const partLoc = await getLocationPart(partno);
         const partLineId = await getLineIdPart(partno);
         const whCode = qrKanban.getWhCode();
         const lotSizeData = await getDataMasterLotSizing(partno);
@@ -48,7 +51,6 @@ export class StockoutService {
         if (lotSizeData.lot_sizing > 0) {
           lotFormData.push({
             partno: partno,
-            kbn_scan: 1,
             kbn_std: lotSizeData.std_kbn_ro,
             qty_scan: lotSizeData.qty_scan,
             kbn_lot: lotSizeData.qty_after_ls,
@@ -56,7 +58,7 @@ export class StockoutService {
             create_date: timeScan,
             line_id: lotSizeData.ls_table,
             wh_code: whCode,
-            status: 1,
+            qty_lot: lotSizeData.qty_lot,
           });
         }
       } catch (error) {
@@ -86,5 +88,92 @@ export class StockoutService {
         },
       }
     );
+  }
+
+  static async lotFormDataProcess(lotFormData) {
+    try {
+      for (const item of lotFormData) {
+        try {
+          const currentDataLotForm = await LS_T_LOT_FORM_1.findOne({
+            attributes: [
+              "kbn_scn",
+              "kbn_std",
+              "qty_scan",
+              "kbn_lot",
+              "partno",
+              "line_id",
+              "status",
+              "wh_code",
+              "id",
+            ],
+            where: {
+              partno: item.partno,
+              status: { [Op.eq]: 0 },
+              wh_code: item.wh_code,
+              line_id: item.line_id,
+            },
+          });
+
+          if (currentDataLotForm.kbn_scn) {
+            const kbn_scn = currentDataLotForm.kbn_scn + 1;
+            if (kbn_scn == item.kbn_std) {
+              await LS_T_LOT_FORM_1.update(
+                {
+                  kbn_scn: kbn_scn,
+                  status: 1,
+                  update_by: item.create_by,
+                  update_date: item.create_date,
+                },
+                {
+                  where: {
+                    id: currentDataLotForm.id,
+                  },
+                }
+              );
+            } else {
+              await LS_T_LOT_FORM_1.update(
+                {
+                  kbn_scn: kbn_scn,
+                  update_by: item.create_by,
+                  update_date: item.create_date,
+                },
+                {
+                  where: {
+                    id: currentDataLotForm.id,
+                  },
+                }
+              );
+            }
+          } else {
+            if (item.kbn_std == 1) {
+              await LS_T_LOT_FORM_1.create({
+                partno: item.partno,
+                kbn_scn: 1,
+                kbn_lot: item.kbn_lot,
+                kbn_std: item.kbn_std,
+                create_by: item.create_by,
+                create_date: item.create_date,
+                line_id: item.line_id,
+                qty_scan: item.qty_scan,
+                wh_code: item.wh_code,
+                status: 1,
+              });
+            } else {
+              await LS_T_LOT_FORM_1.create({
+                partno: item.partno,
+                kbn_scn: 1,
+                kbn_lot: item.kbn_lot,
+                kbn_std: item.kbn_std,
+                create_by: item.create_by,
+                create_date: item.create_date,
+                line_id: item.line_id,
+                qty_scan: item.qty_scan,
+                wh_code: item.wh_code,
+              });
+            }
+          }
+        } catch (error) {}
+      }
+    } catch (error) {}
   }
 }

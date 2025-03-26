@@ -45,7 +45,9 @@ stockoutQueue.process(async (job) => {
 
     // Proses lot sizing
     if (lotFormData.length > 0) {
-      await createDataLotSizing(lotFormData);
+      console.log("Ada data yang di lot sizing gessss: ", lotFormData);
+      // await createDataLotSizing(lotFormData);
+      await StockoutService.lotFormDataProcess(lotFormData);
     }
 
     // Update progress
@@ -59,22 +61,22 @@ stockoutQueue.process(async (job) => {
 
     // Log failed data jika ada
     if (failedProcessedData.length > 0 || failedLotData.length > 0) {
-
       await STOCKOUT_ERROR_LOG.bulkCreate(
         [...failedProcessedData, ...failedLotData].map((item) => ({
           NPK: NPK,
-          ERROR_DATE: literal('GETDATE()'),
+          ERROR_DATE: literal("GETDATE()"),
           ERROR_TYPE: item.error ? "PROCESS_ERROR" : "LOT_ERROR",
           ERROR_MESSAGE: item.error || "Lot sizing calculation failed",
           RAW_DATA: JSON.stringify(item),
           STATUS: "PENDING", // PENDING, RESOLVED, IGNORED
-          CREATED_AT: literal('GETDATE()')
-        })), {
-          returning: false
+          CREATED_AT: literal("GETDATE()"),
+        })),
+        {
+          returning: false,
         }
       );
     }
-    console.log(failedProcessedData)
+    console.log(failedProcessedData);
 
     // Update progress
     await job.progress(100);
@@ -90,12 +92,12 @@ stockoutQueue.process(async (job) => {
     // Log system error
     await STOCKOUT_ERROR_LOG.create({
       NPK: NPK,
-      ERROR_DATE: literal('GETDATE()'),
+      ERROR_DATE: literal("GETDATE()"),
       ERROR_TYPE: "SYSTEM_ERROR",
       ERROR_MESSAGE: error.message,
       RAW_DATA: JSON.stringify(data),
       STATUS: "PENDING",
-      CREATED_AT: literal('GETDATE()')
+      CREATED_AT: literal("GETDATE()"),
     });
     throw error;
   }

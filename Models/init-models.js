@@ -1,12 +1,12 @@
 var DataTypes = require("sequelize").DataTypes;
-var _STOCKOUT_T_TRANSACTION_2 = require("./STOCKOUT_T_TRANSACTION_2");
+var _LS_T_LOT_FORM_1 = require("./LS_T_LOT_FORM_1");
 
 function initModels(sequelize) {
-  var STOCKOUT_T_TRANSACTION_2 = _STOCKOUT_T_TRANSACTION_2(sequelize, DataTypes);
+  var LS_T_LOT_FORM_1 = _LS_T_LOT_FORM_1(sequelize, DataTypes);
 
 
   return {
-    STOCKOUT_T_TRANSACTION_2,
+    LS_T_LOT_FORM_1,
   };
 }
 module.exports = initModels;
