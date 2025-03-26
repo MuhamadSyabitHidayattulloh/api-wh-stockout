@@ -323,7 +323,7 @@ export const createDataLotSizing = async (data) => {
           create_by: lot.create_by,
           create_date: lot.create_date,
           line_id: lot.line_id,
-          status: lot.status,
+          status: lot.status || null,
           wh_code: lot.wh_code,
         };
         await knex("LS_T_LOT_FORM_1").insert(result);
@@ -339,6 +339,25 @@ export const createDataLotSizing = async (data) => {
     knex.destroy;
   }
   return { successCount, failedData };
+};
+
+export const getDataLotForm = async (partno, wh_code, line_id) => {
+  const knex = connectDBWarehouse();
+  try {
+    const result = await knex("LS_T_LOT_FORM_1")
+      .select("kbn_scan", "kbn_std", "id", "kbn_lot")
+      .where({
+        partno: partno,
+        status: 0,
+        wh_code: wh_code,
+        line_id: line_id,
+      });
+    return result;
+  } catch (error) {
+    console.error("Error get data lot form: ", error);
+  } finally {
+    knex.destroy;
+  }
 };
 
 export const createDataLotSizingMisuzumashi = async (data) => {

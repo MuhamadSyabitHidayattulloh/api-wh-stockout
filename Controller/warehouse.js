@@ -4,6 +4,7 @@ import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
 import {
   createDataLotSizing,
   getCategoryPart,
+  getDataMasterLotSizing,
   getDataSeparationByOneWayKanbanModels,
   getDataStoragingByOneWayKanbanModels,
   getLineIdPart,
