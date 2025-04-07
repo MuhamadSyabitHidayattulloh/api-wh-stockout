@@ -301,7 +301,7 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
         SQ: oneWayKanban.getUniqueCode(),
         TGL: formattedDate,
         JAM: formattedTime,
-        FLAG: 8,
+        FLAG: 0,
         FILENAME: item.processId || null,
         FLAGDX: 0,
       };
