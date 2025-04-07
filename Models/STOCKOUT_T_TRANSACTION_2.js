@@ -29,7 +29,7 @@ const STOCKOUT_T_TRANSACTION_2 = connectDBWarehouseSequelize.define(
       allowNull: true,
     },
     SQ: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(20),
       allowNull: true,
     },
     TGL: {
