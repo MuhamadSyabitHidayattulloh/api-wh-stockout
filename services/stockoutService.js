@@ -93,7 +93,7 @@ export class StockoutService {
   static async lotFormDataProcess(lotFormData) {
     try {
       for (const item of lotFormData) {
-        console.log("Data yang kita terima yagesya: ", item.partno);
+        // console.log("Data yang kita terima yagesya: ", item.partno);
         try {
           const currentDataLotForm = await LS_T_LOT_FORM_1.findOne({
             attributes: [
@@ -115,7 +115,7 @@ export class StockoutService {
             },
           });
 
-          console.log("Data yang saat ini ada di table: ", currentDataLotForm);
+          // console.log("Data yang saat ini ada di table: ", currentDataLotForm);
 
           if (currentDataLotForm) {
             const kbn_scan = currentDataLotForm.kbn_scan + 1;
