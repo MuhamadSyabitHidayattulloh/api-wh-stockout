@@ -97,7 +97,7 @@ export class StockoutService {
         try {
           const currentDataLotForm = await LS_T_LOT_FORM_1.findOne({
             attributes: [
-              "kbn_scn",
+              "kbn_scan",
               "kbn_std",
               "qty_scan",
               "kbn_lot",
@@ -117,12 +117,12 @@ export class StockoutService {
 
           console.log("Data yang saat ini ada di table: ", currentDataLotForm);
 
-          if (currentDataLotForm.kbn_scn) {
-            const kbn_scn = currentDataLotForm.kbn_scn + 1;
-            if (kbn_scn == item.kbn_std) {
+          if (currentDataLotForm.kbn_scan) {
+            const kbn_scan = currentDataLotForm.kbn_scan + 1;
+            if (kbn_scan == item.kbn_std) {
               await LS_T_LOT_FORM_1.update(
                 {
-                  kbn_scn: kbn_scn,
+                  kbn_scan: kbn_scan,
                   status: 1,
                   update_by: item.create_by,
                   update_date: item.create_date,
@@ -137,7 +137,7 @@ export class StockoutService {
             } else {
               await LS_T_LOT_FORM_1.update(
                 {
-                  kbn_scn: kbn_scn,
+                  kbn_scan: kbn_scan,
                   update_by: item.create_by,
                   update_date: item.create_date,
                 },
@@ -153,7 +153,7 @@ export class StockoutService {
             if (item.kbn_std == 1) {
               await LS_T_LOT_FORM_1.create({
                 partno: item.partno,
-                kbn_scn: 1,
+                kbn_scan: 1,
                 kbn_lot: item.kbn_lot,
                 kbn_std: item.kbn_std,
                 create_by: item.create_by,
@@ -167,7 +167,7 @@ export class StockoutService {
             } else {
               await LS_T_LOT_FORM_1.create({
                 partno: item.partno,
-                kbn_scn: 1,
+                kbn_scan: 1,
                 kbn_lot: item.kbn_lot,
                 kbn_std: item.kbn_std,
                 create_by: item.create_by,
