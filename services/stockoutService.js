@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { literal, Op } from "sequelize";
 import { OneWayKanbanProcessed } from "../functions/OneWayKanbanProcessed.js";
 import LS_T_LOT_FORM_1 from "../Models/LS_T_LOT_FORM_1.js";
 import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
@@ -125,7 +125,7 @@ export class StockoutService {
                   kbn_scan: kbn_scan,
                   status: 1,
                   update_by: item.create_by,
-                  update_date: item.create_date,
+                  update_date: literal("GETDATE()"),
                 },
                 {
                   where: {
@@ -139,7 +139,7 @@ export class StockoutService {
                 {
                   kbn_scan: kbn_scan,
                   update_by: item.create_by,
-                  update_date: item.create_date,
+                  update_date: literal("GETDATE()"),
                 },
                 {
                   where: {
@@ -157,7 +157,7 @@ export class StockoutService {
                 kbn_lot: item.kbn_lot,
                 kbn_std: item.kbn_std,
                 create_by: item.create_by,
-                create_date: item.create_date,
+                create_date: literal("GETDATE()"),
                 line_id: item.line_id,
                 qty_scan: item.qty_scan,
                 wh_code: item.wh_code,
@@ -171,7 +171,7 @@ export class StockoutService {
                 kbn_lot: item.kbn_lot,
                 kbn_std: item.kbn_std,
                 create_by: item.create_by,
-                create_date: item.create_date,
+                create_date: literal("GETDATE()"),
                 line_id: item.line_id,
                 qty_scan: item.qty_scan,
                 wh_code: item.wh_code,

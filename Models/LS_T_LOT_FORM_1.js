@@ -33,11 +33,11 @@ const LS_T_LOT_FORM_1 = connectDBWarehouseSequelize.define(
     create_by: {
       type: DataTypes.STRING(50),
       allowNull: true,
-      defaultValue: Sequelize.fn("GETUTCDATE"),
     },
     create_date: {
       type: DataTypes.DATE,
       allowNull: true,
+      defaultValue: Sequelize.literal("GETDATE()"),
     },
     update_by: {
       type: DataTypes.STRING(50),
@@ -46,7 +46,7 @@ const LS_T_LOT_FORM_1 = connectDBWarehouseSequelize.define(
     update_date: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: Sequelize.fn("GETUTCDATE"),
+      defaultValue: Sequelize.literal("GETDATE()"),
     },
     active_flag: {
       type: DataTypes.CHAR(10),
