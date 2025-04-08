@@ -179,8 +179,12 @@ export class StockoutService {
               console.log("Betul pak");
             }
           }
-        } catch (error) {}
+        } catch (error) {
+          console.log("ada error saat proses lot form: ", error);
+        }
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log("ada error saat proses lot looping: ", error);
+    }
   }
 }
