@@ -45,7 +45,7 @@ stockoutQueue.process(async (job) => {
 
     // Proses lot sizing
     if (lotFormData.length > 0) {
-      console.log("Ada data yang di lot sizing gessss: ", lotFormData);
+      // console.log("Ada data yang di lot sizing gessss: ", lotFormData);
       // await createDataLotSizing(lotFormData);
       await StockoutService.lotFormDataProcess(lotFormData);
     }
