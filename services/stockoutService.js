@@ -117,7 +117,7 @@ export class StockoutService {
 
           console.log("Data yang saat ini ada di table: ", currentDataLotForm);
 
-          if (currentDataLotForm.length > 0) {
+          if (currentDataLotForm) {
             const kbn_scan = currentDataLotForm.kbn_scan + 1;
             if (kbn_scan == item.kbn_std) {
               await LS_T_LOT_FORM_1.update(
