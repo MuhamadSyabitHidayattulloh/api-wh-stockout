@@ -92,8 +92,8 @@ export class StockoutService {
 
   static async lotFormDataProcess(lotFormData) {
     try {
-      console.log("Data yang kita terima yagesya: ", lotFormData);
       for (const item of lotFormData) {
+        console.log("Data yang kita terima yagesya: ", item.partno);
         try {
           const currentDataLotForm = await LS_T_LOT_FORM_1.findOne({
             attributes: [
