@@ -1,8 +1,8 @@
 import { DataTypes, Sequelize } from "sequelize";
 import { connectDBWarehouseSequelize } from "../Config/dbConnection.js";
 
-const LS_T_LOT_FORM_1 = connectDBWarehouseSequelize.define(
-  "LS_T_LOT_FORM_1",
+const LS_T_LOT_FORM = connectDBWarehouseSequelize.define(
+  "LS_T_LOT_FORM",
   {
     id: {
       autoIncrement: true,
@@ -71,7 +71,7 @@ const LS_T_LOT_FORM_1 = connectDBWarehouseSequelize.define(
     },
   },
   {
-    tableName: "LS_T_LOT_FORM_1",
+    tableName: "LS_T_LOT_FORM",
     schema: "dbo",
     timestamps: false,
     indexes: [
@@ -92,4 +92,4 @@ const LS_T_LOT_FORM_1 = connectDBWarehouseSequelize.define(
   }
 );
 
-export default LS_T_LOT_FORM_1;
+export default LS_T_LOT_FORM;

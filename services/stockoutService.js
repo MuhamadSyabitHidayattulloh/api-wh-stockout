@@ -1,6 +1,6 @@
 import { literal, Op } from "sequelize";
 import { OneWayKanbanProcessed } from "../functions/OneWayKanbanProcessed.js";
-import LS_T_LOT_FORM_1 from "../Models/LS_T_LOT_FORM_1.js";
+import LS_T_LOT_FORM from "../Models/LS_T_LOT_FORM.js";
 import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
 import {
   getLocationPart,
@@ -95,7 +95,7 @@ export class StockoutService {
       for (const item of lotFormData) {
         // console.log("Data yang kita terima yagesya: ", item.partno);
         try {
-          const currentDataLotForm = await LS_T_LOT_FORM_1.findOne({
+          const currentDataLotForm = await LS_T_LOT_FORM.findOne({
             attributes: [
               "kbn_scan",
               "kbn_std",
@@ -120,7 +120,7 @@ export class StockoutService {
           if (currentDataLotForm) {
             const kbn_scan = currentDataLotForm.kbn_scan + 1;
             if (kbn_scan == item.kbn_std) {
-              await LS_T_LOT_FORM_1.update(
+              await LS_T_LOT_FORM.update(
                 {
                   kbn_scan: kbn_scan,
                   status: 1,
@@ -135,7 +135,7 @@ export class StockoutService {
               );
               console.log("Disini pak");
             } else {
-              await LS_T_LOT_FORM_1.update(
+              await LS_T_LOT_FORM.update(
                 {
                   kbn_scan: kbn_scan,
                   update_by: item.create_by,
@@ -151,7 +151,7 @@ export class StockoutService {
             }
           } else {
             if (item.kbn_std == 1) {
-              await LS_T_LOT_FORM_1.create({
+              await LS_T_LOT_FORM.create({
                 partno: item.partno,
                 kbn_scan: 1,
                 kbn_lot: item.kbn_lot,
@@ -165,7 +165,7 @@ export class StockoutService {
               });
               console.log("Waduh pak");
             } else {
-              await LS_T_LOT_FORM_1.create({
+              await LS_T_LOT_FORM.create({
                 partno: item.partno,
                 kbn_scan: 1,
                 kbn_lot: item.kbn_lot,

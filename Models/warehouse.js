@@ -326,7 +326,7 @@ export const createDataLotSizing = async (data) => {
           status: lot.status || null,
           wh_code: lot.wh_code,
         };
-        await knex("LS_T_LOT_FORM_1").insert(result);
+        await knex("LS_T_LOT_FORM").insert(result);
       } catch (error) {
         console.log(error);
         console.error("Error inserting lot data: ", lot, error);
@@ -344,7 +344,7 @@ export const createDataLotSizing = async (data) => {
 export const getDataLotForm = async (partno, wh_code, line_id) => {
   const knex = connectDBWarehouse();
   try {
-    const result = await knex("LS_T_LOT_FORM_1")
+    const result = await knex("LS_T_LOT_FORM")
       .select("kbn_scan", "kbn_std", "id", "kbn_lot")
       .where({
         partno: partno,
@@ -375,7 +375,7 @@ export const createDataLotSizingMisuzumashi = async (data) => {
       status: data.status,
       wh_code: data.wh_code,
     }));
-    const submit = await knex("LS_T_LOT_FORM_1").insert(result);
+    const submit = await knex("LS_T_LOT_FORM").insert(result);
     return submit;
   } catch (error) {
     console.error("Errorr createDataLotSizing", error);

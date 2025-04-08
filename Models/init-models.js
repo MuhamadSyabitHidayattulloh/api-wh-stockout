@@ -1,12 +1,11 @@
 var DataTypes = require("sequelize").DataTypes;
-var _LS_T_LOT_FORM_1 = require("./LS_T_LOT_FORM_1");
+var _LS_T_LOT_FORM = require("./LS_T_LOT_FORM");
 
 function initModels(sequelize) {
-  var LS_T_LOT_FORM_1 = _LS_T_LOT_FORM_1(sequelize, DataTypes);
-
+  var LS_T_LOT_FORM = _LS_T_LOT_FORM(sequelize, DataTypes);
 
   return {
-    LS_T_LOT_FORM_1,
+    LS_T_LOT_FORM,
   };
 }
 module.exports = initModels;
