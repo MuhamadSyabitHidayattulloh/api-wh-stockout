@@ -1,4 +1,4 @@
-import { DataTypes } from "sequelize";
+import { DataTypes, Sequelize } from "sequelize";
 import { connectDBWarehouseSequelize } from "../Config/dbConnection.js";
 
 const LS_T_LOT_FORM_1 = connectDBWarehouseSequelize.define(
@@ -33,6 +33,7 @@ const LS_T_LOT_FORM_1 = connectDBWarehouseSequelize.define(
     create_by: {
       type: DataTypes.STRING(50),
       allowNull: true,
+      defaultValue: Sequelize.fn("GETUTCDATE"),
     },
     create_date: {
       type: DataTypes.DATE,
@@ -45,6 +46,7 @@ const LS_T_LOT_FORM_1 = connectDBWarehouseSequelize.define(
     update_date: {
       type: DataTypes.DATE,
       allowNull: true,
+      defaultValue: Sequelize.fn("GETUTCDATE"),
     },
     active_flag: {
       type: DataTypes.CHAR(10),
