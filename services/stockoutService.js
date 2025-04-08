@@ -114,6 +114,8 @@ export class StockoutService {
             },
           });
 
+          console.log("Data yang saat ini ada di table: ", currentDataLotForm);
+
           if (currentDataLotForm.kbn_scn) {
             const kbn_scn = currentDataLotForm.kbn_scn + 1;
             if (kbn_scn == item.kbn_std) {
@@ -130,6 +132,7 @@ export class StockoutService {
                   },
                 }
               );
+              console.log("Disini pak");
             } else {
               await LS_T_LOT_FORM_1.update(
                 {
@@ -143,6 +146,7 @@ export class StockoutService {
                   },
                 }
               );
+              console.log("Ada disini sekarang pak");
             }
           } else {
             if (item.kbn_std == 1) {
@@ -158,6 +162,7 @@ export class StockoutService {
                 wh_code: item.wh_code,
                 status: 1,
               });
+              console.log("Waduh pak");
             } else {
               await LS_T_LOT_FORM_1.create({
                 partno: item.partno,
@@ -170,6 +175,7 @@ export class StockoutService {
                 qty_scan: item.qty_scan,
                 wh_code: item.wh_code,
               });
+              console.log("Betul pak");
             }
           }
         } catch (error) {}
