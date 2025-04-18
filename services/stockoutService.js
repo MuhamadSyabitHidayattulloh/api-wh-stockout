@@ -191,11 +191,11 @@ export class StockoutService {
 
   static async stockoutTemporaryData(data) {
     try {
-      console.log(data);
+      // console.log(data);
       for (const item of data) {
         try {
           const imgData = item.imgData;
-          console.log(imgData);
+          // console.log(imgData);
           await WH_T_TEMPORARY.destroy({
             where: {
               imgdata: imgData,
