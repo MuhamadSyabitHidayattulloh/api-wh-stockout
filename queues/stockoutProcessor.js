@@ -50,6 +50,8 @@ stockoutQueue.process(async (job) => {
       await StockoutService.lotFormDataProcess(lotFormData);
     }
 
+    await StockoutService.stockoutTemporaryData(data);
+
     // Update progress
     await job.progress(75);
 

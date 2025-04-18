@@ -9,6 +9,7 @@ import {
   getDataLotForm,
 } from "../Models/warehouse.js";
 import moment from "moment";
+import WH_T_TEMPORARY from "../Models/WH_T_TEMPORARY.js";
 
 export class StockoutService {
   static async processStockoutData(data, NPK, timeScan) {
@@ -185,6 +186,20 @@ export class StockoutService {
       }
     } catch (error) {
       console.log("ada error saat proses lot looping: ", error);
+    }
+  }
+
+  static async stockoutTemporaryData(data) {
+    try {
+      const imgData = data.imgData;
+
+      await WH_T_TEMPORARY.destroy({
+        where: {
+          imgdata: imgData,
+        },
+      });
+    } catch (error) {
+      console.log("ada error saat proses delete data temporary: ", error);
     }
   }
 }
