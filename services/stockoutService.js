@@ -192,13 +192,19 @@ export class StockoutService {
   static async stockoutTemporaryData(data) {
     try {
       console.log(data);
-      const imgData = data.imgData;
-      console.log(imgData);
-      await WH_T_TEMPORARY.destroy({
-        where: {
-          imgdata: imgData,
-        },
-      });
+      for (const item of data) {
+        try {
+          const imgData = item.imgData;
+          console.log(imgData);
+          await WH_T_TEMPORARY.destroy({
+            where: {
+              imgdata: imgData,
+            },
+          });
+        } catch (error) {
+          console.log("ada error saat proses lot looping: ", error);
+        }
+      }
     } catch (error) {
       console.log("ada error saat proses delete data temporary: ", error);
     }
