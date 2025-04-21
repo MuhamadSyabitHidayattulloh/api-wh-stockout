@@ -255,8 +255,10 @@ export class StockoutService {
               qty: processedData.qty,
               partno: processedData.partno,
               store_location: processedData.store_location,
-              storage_date: moment(processedData.create_date).format(
-                "YYYY-MM-DD HH:mm:ss"
+              storage_date: literal(
+                `CONVERT(DATETIME, '${moment(processedData.create_date).format(
+                  "YYYY-MM-DD HH:mm:ss"
+                )}')`
               ),
               create_by: NPK,
               create_date: literal("GETDATE()"),
