@@ -217,11 +217,11 @@ export class StockoutService {
         try {
           const imgData = item.imgData;
           const oldestData = await WH_T_TEMPORARY.findOne({
-            attributes: [created_date],
+            attributes: [create_date],
             where: {
               partno: data.partno,
             },
-            order: ["created_date", "DESC"],
+            order: ["create_date", "ASC"],
           });
           const processedData = await WH_T_TEMPORARY.findOne({
             attributes: [
@@ -229,15 +229,15 @@ export class StockoutService {
               qty,
               partno,
               store_location,
-              created_date,
+              create_date,
             ],
             where: {
               imgdata: imgData,
             },
           });
 
-          const oldTime = new Date(oldestData.created_date);
-          const processedTime = new Date(processedData.created_date);
+          const oldTime = new Date(oldestData.create_date);
+          const processedTime = new Date(processedData.create_date);
 
           if (processedTime > oldTime) {
             await WH_T_FIFO.create({
@@ -246,7 +246,7 @@ export class StockoutService {
               qty: processedData.qty,
               partno: processedData.partno,
               store_location: processedData.store_location,
-              storage_date: processedData.created_date,
+              storage_date: processedData.create_date,
               create_by: NPK,
             });
           }
