@@ -248,6 +248,7 @@ export class StockoutService {
 
           if (processedTime > oldTime) {
             console.log("Tidak fifo bro");
+            console.log("img datanya cuyy: ", imgData);
             await WH_T_FIFO.create({
               storaging_id: processedData.storaging_id,
               imgData: imgData,
