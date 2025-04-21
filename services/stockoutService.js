@@ -223,6 +223,7 @@ export class StockoutService {
             },
             order: ["create_date", "ASC"],
           });
+          console.log("data tertua : ", oldestData);
           const processedData = await WH_T_TEMPORARY.findOne({
             attributes: [
               "storaging_id",
@@ -235,11 +236,16 @@ export class StockoutService {
               imgdata: imgData,
             },
           });
+          console.log("data yang sedang di proses: ", processedData);
 
           const oldTime = new Date(oldestData.create_date);
           const processedTime = new Date(processedData.create_date);
 
+          console.log("waktu lama : ", oldTime);
+          console.log("waktu process : ", processedTime);
+
           if (processedTime > oldTime) {
+            console.log("Tidak fifo bro");
             await WH_T_FIFO.create({
               storaging_id: processedData.storaging_id,
               imgData: imgData,
