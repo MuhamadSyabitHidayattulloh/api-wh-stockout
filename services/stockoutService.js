@@ -215,16 +215,8 @@ export class StockoutService {
     try {
       for (const item of data) {
         try {
-          console.log("part numbernya: ", item.partno);
           const imgData = item.imgData;
-          const oldestData = await WH_T_TEMPORARY.findOne({
-            attributes: ["create_date"],
-            where: {
-              partno: item.partno,
-            },
-            order: ["create_date", "ASC"],
-          });
-          console.log("data tertua : ", oldestData);
+
           const processedData = await WH_T_TEMPORARY.findOne({
             attributes: [
               "storaging_id",
@@ -238,6 +230,15 @@ export class StockoutService {
             },
           });
           console.log("data yang sedang di proses: ", processedData);
+
+          const oldestData = await WH_T_TEMPORARY.findOne({
+            attributes: ["create_date"],
+            where: {
+              partno: processedData.partno,
+            },
+            order: ["create_date", "ASC"],
+          });
+          console.log("data tertua : ", oldestData);
 
           const oldTime = new Date(oldestData.create_date);
           const processedTime = new Date(processedData.create_date);
