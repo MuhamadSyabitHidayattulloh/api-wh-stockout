@@ -236,7 +236,7 @@ export class StockoutService {
             where: {
               partno: processedData.partno,
             },
-            order: ["create_date", "ASC"],
+            order: [["create_date", "ASC"]],
           });
           console.log("data tertua : ", oldestData);
 
@@ -256,6 +256,7 @@ export class StockoutService {
               store_location: processedData.store_location,
               storage_date: processedData.create_date,
               create_by: NPK,
+              create_date: literal("GETDATE()"),
             });
           }
         } catch (error) {
