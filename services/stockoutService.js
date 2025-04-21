@@ -217,7 +217,7 @@ export class StockoutService {
         try {
           const imgData = item.imgData;
           const oldestData = await WH_T_TEMPORARY.findOne({
-            attributes: [create_date],
+            attributes: ["create_date"],
             where: {
               partno: data.partno,
             },
@@ -225,11 +225,11 @@ export class StockoutService {
           });
           const processedData = await WH_T_TEMPORARY.findOne({
             attributes: [
-              storaging_id,
-              qty,
-              partno,
-              store_location,
-              create_date,
+              "storaging_id",
+              "qty",
+              "partno",
+              "store_location",
+              "create_date",
             ],
             where: {
               imgdata: imgData,
