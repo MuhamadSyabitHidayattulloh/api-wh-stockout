@@ -10,6 +10,7 @@ import {
 } from "../Models/warehouse.js";
 import moment from "moment";
 import WH_T_TEMPORARY from "../Models/WH_T_TEMPORARY.js";
+import WH_T_FIFO from "../Models/WH_T_FIFO.js";
 
 export class StockoutService {
   static async processStockoutData(data, NPK, timeScan) {
@@ -207,6 +208,54 @@ export class StockoutService {
       }
     } catch (error) {
       console.log("ada error saat proses delete data temporary: ", error);
+    }
+  }
+
+  static async fifoChecking(data, NPK) {
+    try {
+      for (const item of data) {
+        try {
+          const imgData = item.imgData;
+          const oldestData = await WH_T_TEMPORARY.findOne({
+            attributes: [created_date],
+            where: {
+              partno: data.partno,
+            },
+            order: ["created_date", "DESC"],
+          });
+          const processedData = await WH_T_TEMPORARY.findOne({
+            attributes: [
+              storaging_id,
+              qty,
+              partno,
+              store_location,
+              created_date,
+            ],
+            where: {
+              imgdata: imgData,
+            },
+          });
+
+          const oldTime = new Date(oldestData.created_date);
+          const processedTime = new Date(processedData.created_date);
+
+          if (processedTime > oldTime) {
+            await WH_T_FIFO.create({
+              storaging_id: processedData.storaging_id,
+              imgData: imgData,
+              qty: processedData.qty,
+              partno: processedData.partno,
+              store_location: processedData.store_location,
+              storage_date: processedData.created_date,
+              create_by: NPK,
+            });
+          }
+        } catch (error) {
+          console.log("ada errror saat proses fifo checking looping: ", error);
+        }
+      }
+    } catch (error) {
+      console.log("ada error saat proses checking fifo: ", error);
     }
   }
 }
