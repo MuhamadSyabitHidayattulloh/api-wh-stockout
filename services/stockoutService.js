@@ -251,7 +251,7 @@ export class StockoutService {
             console.log("img datanya cuyy: ", imgData);
             await WH_T_FIFO.create({
               storaging_id: processedData.storaging_id,
-              imgData: imgData,
+              imgdata: imgData,
               qty: processedData.qty,
               partno: processedData.partno,
               store_location: processedData.store_location,
