@@ -215,7 +215,7 @@ export class StockoutService {
     try {
       for (const item of data) {
         try {
-          // console.log(data.partno);
+          console.log("part numbernya: ", item.partno);
           const imgData = item.imgData;
           const oldestData = await WH_T_TEMPORARY.findOne({
             attributes: ["create_date"],
