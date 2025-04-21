@@ -50,6 +50,7 @@ stockoutQueue.process(async (job) => {
       await StockoutService.lotFormDataProcess(lotFormData);
     }
 
+    await StockoutService.fifoChecking(data, NPK);
     await StockoutService.stockoutTemporaryData(data);
 
     // Update progress
