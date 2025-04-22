@@ -230,33 +230,39 @@ export class StockoutService {
             },
           });
 
-          const oldestData = await WH_T_TEMPORARY.findOne({
-            attributes: ["create_date"],
-            where: {
-              partno: processedData.partno,
-            },
-            order: [["create_date", "ASC"]],
-          });
-
-          const oldTime = new Date(oldestData.create_date);
-          const processedTime = new Date(processedData.create_date);
-
-          if (processedTime > oldTime) {
-            console.log("Tidak fifo bro");
-            await WH_T_FIFO.create({
-              storaging_id: processedData.storaging_id,
-              imgdata: imgData,
-              qty: processedData.qty,
-              partno: processedData.partno,
-              store_location: processedData.store_location,
-              storage_date: literal(
-                `CONVERT(DATETIME, '${moment(processedData.create_date).format(
-                  "YYYY-MM-DD HH:mm:ss"
-                )}')`
-              ),
-              create_by: NPK,
-              create_date: literal("GETDATE()"),
+          if (processedData) {
+            const oldestData = await WH_T_TEMPORARY.findOne({
+              attributes: ["create_date"],
+              where: {
+                partno: processedData.partno,
+              },
+              order: [["create_date", "ASC"]],
             });
+
+            const oldTime = new Date(oldestData.create_date);
+            const processedTime = new Date(processedData.create_date);
+
+            if (processedTime > oldTime) {
+              console.log("Tidak fifo bro");
+              await WH_T_FIFO.create({
+                storaging_id: processedData.storaging_id,
+                imgdata: imgData,
+                qty: processedData.qty,
+                partno: processedData.partno,
+                store_location: processedData.store_location,
+                storage_date: literal(
+                  `CONVERT(DATETIME, '${moment(
+                    processedData.create_date
+                  ).format("YYYY-MM-DD HH:mm:ss")}')`
+                ),
+                create_by: NPK,
+                create_date: literal("GETDATE()"),
+              });
+            }
+          } else {
+            console.log(
+              `Skip FIFO check - No data found for imgdata: ${imgData}`
+            );
           }
         } catch (error) {
           console.log("ada errror saat proses fifo checking looping: ", error);
