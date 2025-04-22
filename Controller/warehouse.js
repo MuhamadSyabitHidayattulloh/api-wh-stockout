@@ -14,6 +14,7 @@ import {
   stockOutWithoutInstruction,
 } from "../Models/warehouse.js";
 import stockoutQueue from "../queues/stockoutProcessor.js";
+import { Op } from "sequelize";
 
 export const getDataStoragingByOneWayKanban = async (req, res) => {
   try {
@@ -308,11 +309,40 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
       };
     });
 
+    const existingData = await STOCKOUT_T_TRANSACTION_2.findAll({
+      where: {
+        [Op.or]: bulkData.map((item) => ({
+          [Op.and]: {
+            PARTNO: item.PARTNO,
+            SQ: item.SQ,
+            WH: item.WH,
+          },
+        })),
+      },
+    });
+
+    const existingSet = new Set(
+      existingData.map((item) => `${item.PARTNO}-${item.SQ}-${item.WH}`)
+    );
+
+    const newData = bulkData.filter((item) => {
+      !existingSet.has(`${item.PARTNO}-${item.SQ}-${item.WH}`);
+    });
+
+    console.log(`Total data: ${bulkData.length}`);
+    console.log(`Data yang sudah ada: ${existingData.length}`);
+    console.log(`Data baru yang akan diinsert: ${newData.length}`);
+
+    // if (newData.length > 0) {
+    //   await STOCKOUT_T_TRANSACTION_2.bulkCreate(newData, { returning: false });
+    // }
+
     // Bulk insert ke database
     await STOCKOUT_T_TRANSACTION_2.bulkCreate(bulkData, { returning: false });
 
     // Add job ke queue
     await stockoutQueue.add({
+      // data: newData,
       data: data,
       NPK: data[0].NPK,
       timeScan: data[0].timeScan,
