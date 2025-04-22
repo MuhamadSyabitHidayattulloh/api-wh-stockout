@@ -295,6 +295,8 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
       const formattedTime = moment(item.timeScan).format("HH:mm:ss");
 
       return {
+        imgData: item.imgData,
+        timeScan: item.timeScan,
         SLIP: slip || null,
         NPK: item.NPK,
         PARTNO: oneWayKanban.getTotalPartNumber(),
