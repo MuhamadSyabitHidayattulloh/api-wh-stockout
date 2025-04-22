@@ -330,9 +330,9 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
 
     console.log("data yang sama nih: ", existingSet);
 
-    const newData = bulkData.filter((item) => {
-      !existingSet.has(`${item.PARTNO}-${item.SQ}-${item.WH}`);
-    });
+    const newData = bulkData.filter(
+      (item) => !existingSet.has(`${item.PARTNO}-${item.SQ}-${item.WH}`)
+    );
 
     console.log("data yang boleh di stockout nih: ", newData);
 
