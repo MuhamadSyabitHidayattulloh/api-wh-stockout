@@ -336,17 +336,17 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
     console.log(`Data yang sudah ada: ${existingData.length}`);
     console.log(`Data baru yang akan diinsert: ${newData.length}`);
 
-    // if (newData.length > 0) {
-    //   await STOCKOUT_T_TRANSACTION_2.bulkCreate(newData, { returning: false });
-    // }
+    if (newData.length > 0) {
+      await STOCKOUT_T_TRANSACTION_2.bulkCreate(newData, { returning: false });
+    }
 
-    // Bulk insert ke database
-    await STOCKOUT_T_TRANSACTION_2.bulkCreate(bulkData, { returning: false });
+    // // Bulk insert ke database
+    // await STOCKOUT_T_TRANSACTION_2.bulkCreate(bulkData, { returning: false });
 
     // Add job ke queue
     await stockoutQueue.add({
-      // data: newData,
-      data: data,
+      data: newData,
+      // data: data,
       NPK: data[0].NPK,
       timeScan: data[0].timeScan,
     });
