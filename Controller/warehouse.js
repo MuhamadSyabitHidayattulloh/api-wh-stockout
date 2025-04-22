@@ -319,6 +319,9 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
           },
         })),
       },
+      attributes: {
+        exclude: ["id"],
+      },
     });
 
     const existingSet = new Set(
