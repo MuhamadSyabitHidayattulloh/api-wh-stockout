@@ -295,8 +295,8 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
       const formattedTime = moment(item.timeScan).format("HH:mm:ss");
 
       return {
-        imgData: item.imgData,
-        timeScan: item.timeScan,
+        // imgData: item.imgData,
+        // timeScan: item.timeScan,
         SLIP: slip || null,
         NPK: item.NPK,
         PARTNO: oneWayKanban.getTotalPartNumber(),
@@ -311,50 +311,55 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
       };
     });
 
-    const existingData = await STOCKOUT_T_TRANSACTION_2.findAll({
-      where: {
-        [Op.or]: bulkData.map((item) => ({
-          [Op.and]: {
-            PARTNO: item.PARTNO,
-            SQ: item.SQ,
-            WH: item.WH,
-          },
-        })),
-      },
-      attributes: {
-        exclude: ["id"],
-      },
+    // const existingData = await STOCKOUT_T_TRANSACTION_2.findAll({
+    //   where: {
+    //     [Op.or]: bulkData.map((item) => ({
+    //       [Op.and]: {
+    //         PARTNO: item.PARTNO,
+    //         SQ: item.SQ,
+    //         WH: item.WH,
+    //       },
+    //     })),
+    //   },
+    //   attributes: {
+    //     exclude: ["id"],
+    //   },
+    // });
+
+    // const existingSet = new Set(
+    //   existingData.map((item) => `${item.PARTNO}-${item.SQ}-${item.WH}`)
+    // );
+
+    // console.log("data yang sama nih: ", existingSet);
+
+    // const newData = bulkData.filter(
+    //   (item) => !existingSet.has(`${item.PARTNO}-${item.SQ}-${item.WH}`)
+    // );
+
+    // console.log("data yang boleh di stockout nih: ", newData);
+
+    // console.log(`Total data: ${bulkData.length}`);
+    // console.log(`Data yang sudah ada: ${existingData.length}`);
+    // console.log(`Data baru yang akan diinsert: ${newData.length}`);
+
+    // if (newData.length > 0) {
+    //   await STOCKOUT_T_TRANSACTION_2.bulkCreate(newData, { returning: false });
+    //   // Add job ke queue
+    //   await stockoutQueue.add({
+    //     data: newData,
+    //     NPK: data[0].NPK,
+    //     timeScan: data[0].timeScan,
+    //   });
+    // }
+
+    // Bulk insert ke database
+    await STOCKOUT_T_TRANSACTION_2.bulkCreate(bulkData, { returning: false });
+
+    await stockoutQueue.add({
+      data: data,
+      NPK: data[0].NPK,
+      timeScan: data[0].timeScan,
     });
-
-    const existingSet = new Set(
-      existingData.map((item) => `${item.PARTNO}-${item.SQ}-${item.WH}`)
-    );
-
-    console.log("data yang sama nih: ", existingSet);
-
-    const newData = bulkData.filter(
-      (item) => !existingSet.has(`${item.PARTNO}-${item.SQ}-${item.WH}`)
-    );
-
-    console.log("data yang boleh di stockout nih: ", newData);
-
-    console.log(`Total data: ${bulkData.length}`);
-    console.log(`Data yang sudah ada: ${existingData.length}`);
-    console.log(`Data baru yang akan diinsert: ${newData.length}`);
-
-    if (newData.length > 0) {
-      await STOCKOUT_T_TRANSACTION_2.bulkCreate(newData, { returning: false });
-      // Add job ke queue
-      await stockoutQueue.add({
-        data: newData,
-        // data: data,
-        NPK: data[0].NPK,
-        timeScan: data[0].timeScan,
-      });
-    }
-
-    // // Bulk insert ke database
-    // await STOCKOUT_T_TRANSACTION_2.bulkCreate(bulkData, { returning: false });
 
     res.status(200).json({
       msg: "Stockout Success",
