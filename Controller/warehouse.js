@@ -281,7 +281,7 @@ export const stockoutInstructionController = async (req, res) => {
 export const stoctkoutAndroidWHSystem = async (req, res) => {
   try {
     const data = req.body.data;
-    console.log(data);
+    // console.log(data);
     const slip = req.body.slip;
 
     if (!data?.length) {
