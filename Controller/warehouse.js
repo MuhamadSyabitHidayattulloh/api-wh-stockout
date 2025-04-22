@@ -342,18 +342,17 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
 
     if (newData.length > 0) {
       await STOCKOUT_T_TRANSACTION_2.bulkCreate(newData, { returning: false });
+      // Add job ke queue
+      await stockoutQueue.add({
+        data: newData,
+        // data: data,
+        NPK: data[0].NPK,
+        timeScan: data[0].timeScan,
+      });
     }
 
     // // Bulk insert ke database
     // await STOCKOUT_T_TRANSACTION_2.bulkCreate(bulkData, { returning: false });
-
-    // Add job ke queue
-    await stockoutQueue.add({
-      data: newData,
-      // data: data,
-      NPK: data[0].NPK,
-      timeScan: data[0].timeScan,
-    });
 
     res.status(200).json({
       msg: "Stockout Success",
