@@ -242,8 +242,13 @@ export class StockoutService {
             const oldTime = new Date(oldestData.create_date);
             const processedTime = new Date(processedData.create_date);
 
-            if (processedTime > oldTime) {
-              console.log("Tidak fifo bro");
+            const diffHours = moment(processedTime).diff(
+              moment(oldTime),
+              "hours"
+            );
+
+            if (diffHours > 24) {
+              console.log("Tidak fifo bro - Selisih waktu: ", diffHours, "jam");
               await WH_T_FIFO.create({
                 storaging_id: processedData.storaging_id,
                 imgdata: imgData,
