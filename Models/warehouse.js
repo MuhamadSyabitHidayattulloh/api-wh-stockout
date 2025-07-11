@@ -179,9 +179,11 @@ export const getLocationPart = async (data) => {
 export const getLineIdPart = async (data) => {
   const knex = connectDBWarehouse();
   try {
+
     const result = await knex("WH_M_PARTNO")
-      .select("ls_table")
-      .where("partno", data);
+      .select("ls_table")
+      .whereRaw("LOWER(partno) LIKE LOWER(?)", [`%${data}%`]);
+    
 
     if (result.length === 0) {
       // Jika data tidak ditemukan, throw error dengan kode tertentu
