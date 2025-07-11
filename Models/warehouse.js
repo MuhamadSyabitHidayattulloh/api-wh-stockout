@@ -95,47 +95,37 @@ export const stockoutMisuzumashiModels = async (data) => {
 };
 
 export const stockOutWithoutInstruction = async (data) => {
-  /* 
-  ##############################################################################
-  NOTE : Menggunakan metode bulk insert untuk membuat efisensi insert data ke SQL
-  AUTHOR : BRAV
-  ##############################################################################
-  */
-  // console.log(data);
-
   const knex = connectDBWarehouse();
-  const failedData = [];
-  let successCount = 0;
+
   try {
-    const result = data.map((data) => ({
-      transaction_id: data.transaction_id,
-      pattern: data.pattern,
-      idbox_no: data.idbox_no,
-      timescan_idbox: data.timescan_idbox,
-      partno: data.partno,
-      kbn_seq: data.kbn_seq,
-      qty_kbn_std: data.qty_kbn_std,
-      qty_kbn_act: data.qty_kbn_act,
-      wh_loc: data.wh_loc,
-      line_id: data.line_id,
-      operator: data.operator,
-      status: data.status,
-      complete: data.complete,
-      create_by: data.create_by,
-      create_date: data.create_date,
-      wh_code: data.wh_code,
+    const result = data.map((item) => ({
+      // ← Ganti 'data' jadi 'item'
+      transaction_id: item.transaction_id,
+      pattern: item.pattern,
+      idbox_no: item.idbox_no,
+      timescan_idbox: item.timescan_idbox,
+      partno: item.partno,
+      kbn_seq: item.kbn_seq,
+      qty_kbn_std: item.qty_kbn_std,
+      qty_kbn_act: item.qty_kbn_act,
+      wh_loc: item.wh_loc,
+      line_id: item.line_id,
+      operator: item.operator,
+      status: item.status,
+      complete: item.complete,
+      create_by: item.create_by,
+      create_date: item.create_date,
+      wh_code: item.wh_code,
     }));
-    const submit = await knex("LS_T_REPORT_MOBILE_1").insert(result);
-    console.log(submit);
-    return submit;
+
+    await knex("LS_T_REPORT_MOBILE_1").insert(result);
+    console.log(`✅ Inserted ${result.length} records`);
   } catch (error) {
     console.error("Error stockOutWithoutInstruction", error);
     throw error;
   } finally {
-    knex.destroy;
+    knex.destroy();
   }
-
-  return { successCount, failedData };
 };
 
 export const getLastDataStockOut = async () => {
@@ -179,11 +169,9 @@ export const getLocationPart = async (data) => {
 export const getLineIdPart = async (data) => {
   const knex = connectDBWarehouse();
   try {
-
     const result = await knex("WH_M_PARTNO")
-      .select("ls_table")
-      .whereRaw("LOWER(partno) LIKE LOWER(?)", [`%${data}%`]);
-    
+      .select("ls_table")
+      .whereRaw("LOWER(partno) LIKE LOWER(?)", [`%${data}%`]);
 
     if (result.length === 0) {
       // Jika data tidak ditemukan, throw error dengan kode tertentu

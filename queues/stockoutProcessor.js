@@ -56,8 +56,29 @@ stockoutQueue.process(async (job) => {
     // Update progress
     await job.progress(75);
 
-    // Proses stockout
-    await stockOutWithoutInstruction(processedData);
+    // Proses stockout dengan batching
+    const totalBatches = Math.ceil(processedData.length / 100);
+    let allFailedData = [];
+
+    for (let i = 0; i < processedData.length; i += 100) {
+      const batchNumber = Math.floor(i / 100) + 1;
+      await job.progress(75 + (batchNumber / totalBatches) * 20);
+
+      try {
+        // Process batch langsung tanpa batching lagi
+        await stockOutWithoutInstruction(processedData.slice(i, i + 100));
+        console.log(`✅ Batch ${batchNumber} success`);
+      } catch (error) {
+        console.error(`❌ Batch ${batchNumber} failed:`, error.message);
+        allFailedData.push(
+          ...processedData.slice(i, i + 100).map((item) => ({
+            ...item,
+            error: error.message,
+            batchNumber: batchNumber,
+          }))
+        );
+      }
+    }
 
     // Update FLAGDX
     await StockoutService.updateFlagDX(NPK, timeScan);
@@ -81,6 +102,24 @@ stockoutQueue.process(async (job) => {
     }
     console.log(failedProcessedData);
 
+    // Setelah loop batching
+    if (allFailedData.length > 0) {
+      console.log(`❌ Total failed records: ${allFailedData.length}`);
+      // Bisa ditambahkan ke error log juga
+      await STOCKOUT_ERROR_LOG.bulkCreate(
+        allFailedData.map((item) => ({
+          NPK: NPK,
+          ERROR_DATE: literal("GETDATE()"),
+          ERROR_TYPE: "BATCH_ERROR",
+          ERROR_MESSAGE: item.error,
+          RAW_DATA: JSON.stringify(item),
+          STATUS: "PENDING",
+          CREATED_AT: literal("GETDATE()"),
+        })),
+        { returning: false }
+      );
+    }
+
     // Update progress
     await job.progress(100);
 
@@ -88,6 +127,9 @@ stockoutQueue.process(async (job) => {
       success: true,
       failedProcessedData,
       failedLotData,
+      batchFailedData: allFailedData, // ← Tambahkan ini
+      totalBatches: totalBatches,
+      successBatches: totalBatches - Math.ceil(allFailedData.length / 100),
     };
   } catch (error) {
     console.error("Job processing error:", error);
