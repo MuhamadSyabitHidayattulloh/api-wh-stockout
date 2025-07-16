@@ -1,7 +1,7 @@
 import { literal, Op } from "sequelize";
 import { OneWayKanbanProcessed } from "../functions/OneWayKanbanProcessed.js";
 import LS_T_LOT_FORM from "../Models/LS_T_LOT_FORM.js";
-import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
+import STOCKOUT_T_TRANSACTION from "../Models/STOCKOUT_T_TRANSACTION.js";
 import {
   getLocationPart,
   getLineIdPart,
@@ -80,7 +80,7 @@ export class StockoutService {
   }
 
   static async updateFlagDX(NPK, timeScan) {
-    await STOCKOUT_T_TRANSACTION_2.update(
+    await STOCKOUT_T_TRANSACTION.update(
       { FLAGDX: 1 },
       {
         where: {
