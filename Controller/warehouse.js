@@ -284,6 +284,8 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
     const data = req.body.data;
     const slip = req.body.slip;
 
+    console.log(data);
+
     if (!data?.length) {
       throw new Error("Data is empty!");
     }
