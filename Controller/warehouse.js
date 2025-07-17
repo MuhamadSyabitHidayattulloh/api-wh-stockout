@@ -282,9 +282,9 @@ export const stockoutInstructionController = async (req, res) => {
 export const stoctkoutAndroidWHSystem = async (req, res) => {
   try {
     const data = req.body.data;
+    console.log(data);
     const slip = req.body.slip;
 
-    console.log(data);
 
     if (!data?.length) {
       throw new Error("Data is empty!");
