@@ -282,7 +282,7 @@ export const stockoutInstructionController = async (req, res) => {
 export const stoctkoutAndroidWHSystem = async (req, res) => {
   try {
     const data = req.body.data;
-    // console.log(data);
+    console.log("insert data", data);
     const slip = req.body.slip;
 
     if (!data?.length) {
@@ -310,6 +310,8 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
         FLAGDX: 0,
       };
     });
+
+    console.log("bulkData", bulkData)
 
     // const existingData = await STOCKOUT_T_TRANSACTION_2.findAll({
     //   where: {
