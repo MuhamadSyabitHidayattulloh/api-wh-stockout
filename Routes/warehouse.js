@@ -16,31 +16,31 @@ router.get("/testRoute", (req, res) => {
   res.send("PE DEVELOPMENT 2024");
 });
 
-router.get(
-  "/getDataStoragingByOneWayKanban/:id",
-  getDataStoragingByOneWayKanban
-);
-router.get(
-  "/getDataSeparationByOneWayKanban/:id",
-  getDataSeparationByOneWayKanban
-);
+// router.get(
+//   "/getDataStoragingByOneWayKanban/:id",
+//   getDataStoragingByOneWayKanban
+// );
+// router.get(
+//   "/getDataSeparationByOneWayKanban/:id",
+//   getDataSeparationByOneWayKanban
+// );
 
-router.post("/getDataStoraging", getTotalDataStoraging);
-router.post("/getDataSeparation", getTotalDataSeparation);
+// router.post("/getDataStoraging", getTotalDataStoraging);
+// router.post("/getDataSeparation", getTotalDataSeparation);
 
-/* 
-##############################################################################
-NOTE : Menggunakan metode yang lama (Cpool) 
-AUTHOR : BRAV
-##############################################################################
-*/
-router.post(
-  "/stockOutWithoutInstruction",
-  stockoutWithoutInstructionController
-);
+// /*
+// ##############################################################################
+// NOTE : Menggunakan metode yang lama (Cpool)
+// AUTHOR : BRAV
+// ##############################################################################
+// */
+// router.post(
+//   "/stockOutWithoutInstruction",
+//   stockoutWithoutInstructionController
+// );
 
 router.post("/getCategoryPart", getPartCategoryShopping);
 router.post("/getDetailShoppingList", getDetailShoppingList);
-router.post("/stockOutWithInstruction", stockoutInstructionController);
+// router.post("/stockOutWithInstruction", stockoutInstructionController);
 router.post("/stockoutAndroid", stoctkoutAndroidWHSystem);
 export default router;
