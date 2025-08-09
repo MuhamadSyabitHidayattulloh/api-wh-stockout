@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import crypto from "crypto";
 import http from "http";
 import warehouseRoutes from "./Routes/warehouse.js";
 import compression from "compression";
@@ -44,7 +45,9 @@ app.use(errorHandler);
 const server = http.createServer(app);
 
 server.listen(port, () => {
-  `Server Running On Port ${port} [${process.env.NODE_ENV || "development"}]`;
+  console.log(
+    `Server Running On Port ${port} [${process.env.NODE_ENV || "development"}]`
+  );
 });
 
 export default server;

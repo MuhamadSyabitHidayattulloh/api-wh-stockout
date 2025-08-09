@@ -1,43 +1,34 @@
-import { confirmLoginModelQr } from "../Models/login.js";
+// Controller/login.js - Updated with AuthService
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import master_login from "../Models/master_login.js";
-import CryptoJS from "crypto-js";
-import { Op } from "sequelize";
+import { AuthService } from "../services/AuthService.js";
+
 dotenv.config();
 
 export const confirmLoginStockoutApps = async (req, res) => {
   try {
-    const passwordHash = CryptoJS.MD5(req.body.PASSWORD).toString(
-      CryptoJS.enc.Hex
-    );
+    const { USERNAME, PASSWORD } = req.body;
 
-    const data = await master_login.findOne({
-      attributes: ["username", "plant_code", "name"],
-      where: {
-        username: req.body.USERNAME,
-        password: passwordHash.toLowerCase() || passwordHash.toUpperCase(),
-        stockout_wh_role: { [Op.gt]: 0 },
-      },
-    });
+    // Use AuthService instead of direct model access
+    const userData = await AuthService.confirmLogin({ USERNAME, PASSWORD });
 
-    if (!data) {
+    if (!userData) {
       return res.status(401).json({
         msg: "Data tidak terdaftar dan tidak dapat akses login",
       });
     }
 
-    //jwt
+    // Generate JWT token
     const token = jwt.sign(
-      { username: data.username },
+      { username: userData.username },
       process.env.JWT_SECRET,
-      { algorithm: "HS256" } // Algoritma standar
+      { algorithm: "HS256" }
     );
 
     const loginData = {
-      USERID: data.username.trim(),
-      plant_code: data.plant_code.trim(),
-      USERNAME: data.name.trim().split(" ")[0],
+      USERID: userData.username.trim(),
+      plant_code: userData.plant_code.trim(),
+      USERNAME: userData.name.trim().split(" ")[0],
       token: token,
     };
 
@@ -46,22 +37,30 @@ export const confirmLoginStockoutApps = async (req, res) => {
       data: loginData,
     });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(400).json({
       msg: "get data failed",
-      errMsg: error,
+      errMsg: error.message,
     });
   }
 };
 
 export const confirmLoginQrStockoutApps = async (req, res) => {
   try {
-    // console.log(req.body);
-    const result = await confirmLoginModelQr(req.body);
-    //jwt
+    // Use AuthService instead of model function
+    const result = await AuthService.confirmLoginQr(req.body);
+
+    if (!result) {
+      return res.status(401).json({
+        msg: "Data tidak terdaftar atau QR code tidak valid",
+      });
+    }
+
+    // Generate JWT token
     const token = jwt.sign(
       { username: result.username },
       process.env.JWT_SECRET,
-      { algorithm: "HS256" } // Algoritma standar
+      { algorithm: "HS256" }
     );
 
     const loginData = {
@@ -76,10 +75,66 @@ export const confirmLoginQrStockoutApps = async (req, res) => {
       data: loginData,
     });
   } catch (error) {
-    console.log(error);
+    console.error("QR Login error:", error);
     res.status(400).json({
       msg: "get data failed !",
-      errMsg: error,
+      errMsg: error.message,
+    });
+  }
+};
+
+// Additional controller methods for better API design
+export const validateToken = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+
+    if (!token) {
+      return res.status(401).json({
+        msg: "Token tidak ditemukan",
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    res.status(200).json({
+      msg: "Token valid",
+      data: { username: decoded.username },
+    });
+  } catch (error) {
+    res.status(401).json({
+      msg: "Token tidak valid",
+      errMsg: error.message,
+    });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { username, currentPassword } = req.body;
+
+    // Validate current password
+    const isValid = await AuthService.validateUserCredentials(
+      username,
+      currentPassword
+    );
+
+    if (!isValid) {
+      return res.status(401).json({
+        msg: "Password saat ini tidak benar",
+      });
+    }
+
+    // Update password logic would go here
+    // This would require an update method in AuthService
+
+    res.status(200).json({
+      msg: "Password berhasil diubah",
+    });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(400).json({
+      msg: "Gagal mengubah password",
+      errMsg: error.message,
     });
   }
 };

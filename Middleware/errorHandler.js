@@ -31,9 +31,9 @@ export const errorHandler = (err, req, res, next) => {
 
 export class AppError extends Error {
   constructor(message, status = 500) {
-    super(message),
-      (this.status = status),
-      (this.name = this.constructor.name),
-      Error.captureStackTrace(this, this.constructor);
+    super(message);
+    this.status = status;
+    this.name = this.constructor.name;
+    Error.captureStackTrace(this, this.constructor);
   }
 }

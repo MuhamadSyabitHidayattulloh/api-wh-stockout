@@ -1,13 +1,8 @@
 import Queue from "bull";
 import { redisConfig } from "../Config/redis.js";
-import {
-  createDataLotSizing,
-  stockOutWithoutInstruction,
-} from "../Models/warehouse.js";
-import { StockoutService } from "../services/stockoutService.js";
 import STOCKOUT_ERROR_LOG from "../Models/STOCKOUT_ERROR_LOG.js";
-import moment from "moment";
 import { literal } from "sequelize";
+import { WarehouseService } from "../services/warehouseService.js";
 
 // Buat queue untuk processing
 const stockoutQueue = new Queue("stockoutProcessing", redisConfig);
@@ -19,8 +14,8 @@ stockoutQueue.defaultJobOptions = {
     type: "exponential",
     delay: 1000,
   },
-  removeOnComplete: true, // Hapus job yang sukses
-  removeOnFail: false, // Simpan job yang gagal untuk analisis
+  removeOnComplete: true,
+  removeOnFail: false,
 };
 
 // Process jobs
@@ -28,35 +23,25 @@ stockoutQueue.process(async (job) => {
   const { data, NPK, timeScan } = job.data;
 
   try {
-    // Update progress
     await job.progress(10);
 
     // Proses data menggunakan service
     const { processedData, failedProcessedData, lotFormData, failedLotData } =
       await StockoutService.processStockoutData(data, NPK, timeScan);
 
-    // console.log("process data", processedData)
-    // console.log("failed data", failedProcessedData)
-    // console.log("lot form data", lotFormData)
-    // console.log("failed lot data", failedLotData)
-
-    // Update progress
     await job.progress(50);
 
     // Proses lot sizing
     if (lotFormData.length > 0) {
-      // console.log("Ada data yang di lot sizing gessss: ", lotFormData);
-      // await createDataLotSizing(lotFormData);
       await StockoutService.lotFormDataProcess(lotFormData);
     }
 
     await StockoutService.fifoChecking(data, NPK);
     await StockoutService.stockoutTemporaryData(data);
 
-    // Update progress
     await job.progress(75);
 
-    // Proses stockout dengan batching
+    // Proses stockout dengan batching menggunakan WarehouseService
     const totalBatches = Math.ceil(processedData.length / 100);
     let allFailedData = [];
 
@@ -65,8 +50,10 @@ stockoutQueue.process(async (job) => {
       await job.progress(75 + (batchNumber / totalBatches) * 20);
 
       try {
-        // Process batch langsung tanpa batching lagi
-        await stockOutWithoutInstruction(processedData.slice(i, i + 100));
+        // Use WarehouseService instead of direct warehouse.js import
+        await WarehouseService.stockOutWithoutInstruction(
+          processedData.slice(i, i + 100)
+        );
         console.log(`✅ Batch ${batchNumber} success`);
       } catch (error) {
         console.error(`❌ Batch ${batchNumber} failed:`, error.message);
@@ -92,20 +79,15 @@ stockoutQueue.process(async (job) => {
           ERROR_TYPE: item.error ? "PROCESS_ERROR" : "LOT_ERROR",
           ERROR_MESSAGE: item.error || "Lot sizing calculation failed",
           RAW_DATA: JSON.stringify(item),
-          STATUS: "PENDING", // PENDING, RESOLVED, IGNORED
+          STATUS: "PENDING",
           CREATED_AT: literal("GETDATE()"),
         })),
-        {
-          returning: false,
-        }
+        { returning: false }
       );
     }
-    console.log(failedProcessedData);
 
-    // Setelah loop batching
     if (allFailedData.length > 0) {
       console.log(`❌ Total failed records: ${allFailedData.length}`);
-      // Bisa ditambahkan ke error log juga
       await STOCKOUT_ERROR_LOG.bulkCreate(
         allFailedData.map((item) => ({
           NPK: NPK,
@@ -120,21 +102,19 @@ stockoutQueue.process(async (job) => {
       );
     }
 
-    // Update progress
     await job.progress(100);
 
     return {
       success: true,
       failedProcessedData,
       failedLotData,
-      batchFailedData: allFailedData, // ← Tambahkan ini
+      batchFailedData: allFailedData,
       totalBatches: totalBatches,
       successBatches: totalBatches - Math.ceil(allFailedData.length / 100),
     };
   } catch (error) {
     console.error("Job processing error:", error);
 
-    // Log system error
     await STOCKOUT_ERROR_LOG.create({
       NPK: NPK,
       ERROR_DATE: literal("GETDATE()"),

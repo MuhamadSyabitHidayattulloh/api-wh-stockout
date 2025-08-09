@@ -1,5 +1,37 @@
 import { logger } from "../Config/logger.js";
 
+const getLogLevel = (statusCode) => {
+  if (statusCode >= 500) return "error";
+  if (statusCode >= 400) return "warn";
+  return "info";
+};
+const getStatusCategory = (statusCode) => {
+  if (statusCode >= 500) return "error";
+  if (statusCode >= 400) return "client_error";
+  if (statusCode >= 300) return "redirect";
+  if (statusCode >= 200) return "success";
+};
+
+const getAdditionalLogData = (status, req, res) => {
+  const additionalData = {};
+
+  if (status.category === "client_error") {
+    additionalData.validationErrors = res.locals.validationErrors;
+    if (process.env.NODE_ENV === "development") {
+      additionalData.body = req.body;
+    }
+  }
+
+  if (status.category === "error") {
+    additionalData.error = res.locals.error;
+    if (process.env.NODE_ENV === "development") {
+      additionalData.stack = res.locals.error?.stack;
+    }
+  }
+
+  return additionalData;
+};
+
 export const performanceLogger = (req, res, next) => {
   const start = process.hrtime();
 
@@ -7,42 +39,24 @@ export const performanceLogger = (req, res, next) => {
     const [seconds, nanoseconds] = process.hrtime(start);
     const duration = seconds * 1000 + nanoseconds / 1000000;
 
-    const logLevel =
-      res.statusCode >= 500 ? "error" : res.statusCode >= 400 ? "warn" : "info";
-
+    const logLevel = getLogLevel(res.statusCode);
     const status = {
       code: res.statusCode,
-      category:
-        res.statusCode >= 500
-          ? "error"
-          : res.statusCode >= 400
-          ? "client_error"
-          : res.statusCode >= 300
-          ? "redirect"
-          : res.statusCode >= 200
-          ? "success"
-          : "info",
+      category: getStatusCategory(res.statusCode),
     };
-
-    logger[logLevel]("Request completed", {
+    const baseLogData = {
       timestamp: new Date().toLocaleString(),
       method: req.method,
       url: req.url,
       status,
       duration: `${duration.toFixed(2)}ms`,
       requestId: req.id,
-      ...(status.category === "client_error" && {
-        validationErrors: res.locals.validationErrors,
-        body: process.env.NODE_ENV === "development" ? req.body : undefined,
-      }),
-      ...(status.category === "server_error" && {
-        error: res.locals.error,
-        stack:
-          process.env.NODE_ENV === "development"
-            ? res.locals.error?.stack
-            : undefined,
-      }),
-    });
+    };
+
+    const additionalData = getAdditionalLogData(status, req, res);
+    const logData = { ...baseLogData, ...additionalData };
+
+    logger[logLevel]("Request Completed", logData);
   });
 
   next();

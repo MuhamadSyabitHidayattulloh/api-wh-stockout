@@ -9,6 +9,15 @@ const __dirname = path.dirname(__filename);
 // Tentukan environment
 const isDevelopment = process.env.NODE_ENV === "development";
 
+// Custom format untuk menambahkan environment info
+const addEnvironmentInfo = winston.format((info) => {
+  if (!isDevelopment) {
+    info.environment = "production";
+    info.hostname = process.env.HOSTNAME || "localhost";
+  }
+  return info;
+});
+
 const transports = [
   // Transport for error log
   new DailyRotateFile({
@@ -50,18 +59,11 @@ if (isDevelopment) {
 
 // Create logger
 export const logger = winston.createLogger({
-  // level: "info",
   level: isDevelopment ? "debug" : "info",
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.json(),
-    winston.format((info) => {
-      if (!isDevelopment) {
-        (info.environtment = "production"),
-          (info.hostname = process.env.HOSTNAME);
-      }
-      return info;
-    })()
+    addEnvironmentInfo() // ✅ FIXED: Properly instantiated format
   ),
   transports,
   // Additional configuration for production

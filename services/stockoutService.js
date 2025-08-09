@@ -1,16 +1,12 @@
+// services/StockoutService.js - Fixed import path
 import { literal, Op } from "sequelize";
-import { OneWayKanbanProcessed } from "../functions/OneWayKanbanProcessed.js";
 import LS_T_LOT_FORM from "../Models/LS_T_LOT_FORM.js";
 import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
-import {
-  getLocationPart,
-  getLineIdPart,
-  getDataMasterLotSizing,
-  getDataLotForm,
-} from "../Models/warehouse.js";
+import { WarehouseService } from "./warehouseService.js"; // Fixed casing
 import moment from "moment";
 import WH_T_TEMPORARY from "../Models/WH_T_TEMPORARY.js";
 import WH_T_FIFO from "../Models/WH_T_FIFO.js";
+import { OneWayKanbanProcessed } from "../functions/OneWayKanbanProcessed.js";
 
 export class StockoutService {
   static async processStockoutData(data, NPK, timeScan) {
@@ -27,10 +23,14 @@ export class StockoutService {
         const partno = qrKanban.getPartNumber();
         const uniqueId = qrKanban.getUniqueCode();
         const qty = qrKanban.getQtyPerKanban();
-        const partLoc = await getLocationPart(partno);
-        const partLineId = await getLineIdPart(partno);
+
+        // Use WarehouseService methods
+        const partLoc = await WarehouseService.getLocationPart(partno);
+        const partLineId = await WarehouseService.getLineIdPart(partno);
+        const lotSizeData = await WarehouseService.getDataMasterLotSizing(
+          partno
+        );
         const whCode = qrKanban.getWhCode();
-        const lotSizeData = await getDataMasterLotSizing(partno);
 
         processedData.push({
           pattern: pattern,
@@ -79,6 +79,16 @@ export class StockoutService {
     };
   }
 
+  // Add method to execute stockout using WarehouseService
+  static async executeStockout(processedData) {
+    try {
+      return await WarehouseService.stockOutWithoutInstruction(processedData);
+    } catch (error) {
+      console.error("Error executing stockout", error);
+      throw error;
+    }
+  }
+
   static async updateFlagDX(NPK, timeScan) {
     await STOCKOUT_T_TRANSACTION_2.update(
       { FLAGDX: 1 },
@@ -95,7 +105,6 @@ export class StockoutService {
   static async lotFormDataProcess(lotFormData) {
     try {
       for (const item of lotFormData) {
-        // console.log("Data yang kita terima yagesya: ", item.partno);
         try {
           const currentDataLotForm = await LS_T_LOT_FORM.findOne({
             attributes: [
@@ -117,8 +126,6 @@ export class StockoutService {
             },
           });
 
-          // console.log("Data yang saat ini ada di table: ", currentDataLotForm);
-
           if (currentDataLotForm) {
             const kbn_scan = currentDataLotForm.kbn_scan + 1;
             if (kbn_scan == item.kbn_std) {
@@ -135,7 +142,6 @@ export class StockoutService {
                   },
                 }
               );
-              console.log("Disini pak");
             } else {
               await LS_T_LOT_FORM.update(
                 {
@@ -149,37 +155,32 @@ export class StockoutService {
                   },
                 }
               );
-              console.log("Ada disini sekarang pak");
             }
+          } else if (item.kbn_std == 1) {
+            await LS_T_LOT_FORM.create({
+              partno: item.partno,
+              kbn_scan: 1,
+              kbn_lot: item.kbn_lot,
+              kbn_std: item.kbn_std,
+              create_by: item.create_by,
+              create_date: literal("GETDATE()"),
+              line_id: item.line_id,
+              qty_scan: item.qty_scan,
+              wh_code: item.wh_code,
+              status: 1,
+            });
           } else {
-            if (item.kbn_std == 1) {
-              await LS_T_LOT_FORM.create({
-                partno: item.partno,
-                kbn_scan: 1,
-                kbn_lot: item.kbn_lot,
-                kbn_std: item.kbn_std,
-                create_by: item.create_by,
-                create_date: literal("GETDATE()"),
-                line_id: item.line_id,
-                qty_scan: item.qty_scan,
-                wh_code: item.wh_code,
-                status: 1,
-              });
-              console.log("Waduh pak");
-            } else {
-              await LS_T_LOT_FORM.create({
-                partno: item.partno,
-                kbn_scan: 1,
-                kbn_lot: item.kbn_lot,
-                kbn_std: item.kbn_std,
-                create_by: item.create_by,
-                create_date: literal("GETDATE()"),
-                line_id: item.line_id,
-                qty_scan: item.qty_scan,
-                wh_code: item.wh_code,
-              });
-              console.log("Betul pak");
-            }
+            await LS_T_LOT_FORM.create({
+              partno: item.partno,
+              kbn_scan: 1,
+              kbn_lot: item.kbn_lot,
+              kbn_std: item.kbn_std,
+              create_by: item.create_by,
+              create_date: literal("GETDATE()"),
+              line_id: item.line_id,
+              qty_scan: item.qty_scan,
+              wh_code: item.wh_code,
+            });
           }
         } catch (error) {
           console.log("ada error saat proses lot form: ", error);
@@ -192,11 +193,9 @@ export class StockoutService {
 
   static async stockoutTemporaryData(data) {
     try {
-      // console.log(data);
       for (const item of data) {
         try {
           const imgData = item.imgData;
-          // console.log(imgData);
           await WH_T_TEMPORARY.destroy({
             where: {
               imgdata: imgData,
