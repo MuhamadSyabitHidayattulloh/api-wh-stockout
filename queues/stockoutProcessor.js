@@ -3,6 +3,7 @@ import { redisConfig } from "../Config/redis.js";
 import STOCKOUT_ERROR_LOG from "../Models/STOCKOUT_ERROR_LOG.js";
 import { literal } from "sequelize";
 import { WarehouseService } from "../services/warehouseService.js";
+import { StockoutService } from "../services/stockoutService.js";
 
 // Buat queue untuk processing
 const stockoutQueue = new Queue("stockoutProcessing", redisConfig);
