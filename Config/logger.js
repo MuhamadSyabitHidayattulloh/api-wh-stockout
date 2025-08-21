@@ -40,6 +40,19 @@ const transports = [
   }),
 ];
 
+// Jika ingin menambahkan info environment
+const environmentFormat = winston.format.printf(
+  ({ level, message, timestamp, ...meta }) => {
+    return JSON.stringify({
+      timestamp,
+      level,
+      message,
+      environment: process.env.NODE_ENV || "development",
+      ...meta,
+    });
+  }
+);
+
 if (isDevelopment) {
   transports.push(
     new winston.transports.Console({
@@ -63,7 +76,7 @@ export const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.json(),
-    addEnvironmentInfo() // ✅ FIXED: Properly instantiated format
+    environmentFormat
   ),
   transports,
   // Additional configuration for production

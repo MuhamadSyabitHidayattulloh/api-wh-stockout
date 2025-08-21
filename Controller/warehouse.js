@@ -73,14 +73,31 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
     // Bulk insert ke database
     await STOCKOUT_T_TRANSACTION_2.bulkCreate(bulkData, { returning: false });
 
-    await stockoutQueue.add({
-      data: data,
-      NPK: data[0].NPK,
-      timeScan: data[0].timeScan,
-    });
+    const BATCH_SIZE = 25;
+    const totalBatches = Math.ceil(data.length / BATCH_SIZE);
+
+    console.log(
+      `�� Total data: ${data.length}, akan diproses dalam ${totalBatches} batch (${BATCH_SIZE} data per batch)`
+    );
+
+    for (let index = 0; index < data.length; index += BATCH_SIZE) {
+      const batchData = data.slice(index, index + BATCH_SIZE);
+      const batchNumber = Math.floor(index / BATCH_SIZE);
+
+      await stockoutQueue.add({
+        data: batchData,
+        NPK: batchData[0].NPK,
+        timeScan: batchData[0].timeScan,
+        batchNumber: batchNumber,
+        totalBatches: totalBatches,
+        batchSize: batchData.length,
+      });
+    }
 
     res.status(200).json({
       msg: "Stockout Success",
+      totalData: data.length,
+      totalBatches: totalBatches,
     });
   } catch (error) {
     console.error("Error:", error);
