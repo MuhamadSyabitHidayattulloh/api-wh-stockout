@@ -1,21 +1,16 @@
 // tests/setup.js - Test setup and utilities
 import { jest } from "@jest/globals";
+import { dotenv } from "dotenv";
 
-// Set test environment
-process.env.NODE_ENV = "test";
-process.env.JWT_SECRET = "test-secret-key-12345";
-process.env.DB_MASTER_NAME = "test_master_db";
-process.env.DB_MASTER_USERNAME = "test_user";
-process.env.DB_MASTER_PASSWORD = "test_password";
-process.env.DB_MASTER_SERVER = "localhost";
-process.env.DB_WH_NAME = "test_warehouse_db";
-process.env.DB_WH_USERNAME = "test_user";
-process.env.DB_WH_PASSWORD = "test_password";
-process.env.DB_WH_SERVER = "localhost";
-process.env.DB_STORAGE_NAME = "test_storage_db";
-process.env.DB_STORAGE_USERNAME = "test_user";
-process.env.DB_STORAGE_PASSWORD = "test_password";
-process.env.DB_STORAGE_SERVER = "localhost";
+const result = dotenv.config({ path: "env.test" });
+console.log("ini env: ", result);
+
+console.log("🧪 Test Environment:", {
+  NODE_ENV: process.env.NODE_ENV,
+  DB_MASTER_NAME: process.env.DB_MASTER_NAME,
+  DB_WH_NAME: process.env.DB_WH_NAME,
+  JWT_SECRET: process.env.JWT_SECRET ? "✅ Loaded" : "❌ Missing",
+});
 
 // Test utilities
 export const createMockUser = (overrides = {}) => ({

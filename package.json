@@ -7,11 +7,11 @@
   "scripts": {
     "start": "cross-env NODE_ENV=production nodemon index.js",
     "dev": "cross-env NODE_ENV=development nodemon index.js",
-    "test": "NODE_OPTIONS='--experimental-vm-modules' jest --passWithNoTests",
-    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage --passWithNoTests --watchAll=false",
-    "test:ci": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage --passWithNoTests --watchAll=false --ci",
-    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
-    "test:simple": "NODE_OPTIONS='--experimental-vm-modules' jest tests/simple.test.js",
+    "test": "cross-env NODE_OPTIONS=test jest --passWithNoTests",
+    "test:coverage": "cross-env NODE_OPTIONS=test jest --coverage --passWithNoTests --watchAll=false",
+    "test:ci": "cross-env NODE_OPTIONS=test jest --coverage --passWithNoTests --watchAll=false --ci",
+    "test:watch": "cross-env NODE_OPTIONS=test jest --watch",
+    "test:simple": "cross-env NODE_OPTIONS=test jest tests/simple.test.js",
     "start:monitor": "node monitoring/app.js"
   },
   "dependencies": {
