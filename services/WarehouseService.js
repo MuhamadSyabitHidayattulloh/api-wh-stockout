@@ -35,6 +35,7 @@ export class WarehouseService {
       }));
 
       await LS_T_REPORT_MOBILE_1.bulkCreate(result);
+
       console.log(`✅ Inserted ${result.length} records`);
       return result;
     } catch (error) {
@@ -64,11 +65,12 @@ export class WarehouseService {
       const result = await WH_M_PARTNO.findOne({
         where: {
           partno: {
-            [Op.iLike]: `%${partno}%`,
+            [Op.like]: `%${partno}%`,
           },
         },
         attributes: ["ls_table"],
       });
+
 
       if (!result) {
         const error = new Error("Part number not found");

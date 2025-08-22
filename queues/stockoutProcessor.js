@@ -52,10 +52,10 @@ stockoutQueue.process(async (job) => {
       );
       throw error;
     }
-
+    
     // Update FLAGDX
     await StockoutService.updateFlagDX(NPK, timeScan);
-
+    
     // Log failed data jika ada
     if (failedProcessedData.length > 0 || failedLotData.length > 0) {
       await STOCKOUT_ERROR_LOG.bulkCreate(
@@ -71,6 +71,7 @@ stockoutQueue.process(async (job) => {
         { returning: false }
       );
     }
+    console.log("data yang mau di proses nich", failedProcessedData)
 
     if (allFailedData.length > 0) {
       console.log(`❌ Total failed records: ${allFailedData.length}`);

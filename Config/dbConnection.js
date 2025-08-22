@@ -1,3 +1,4 @@
+import { timeStamp } from "console";
 import dotenv from "dotenv";
 import { Sequelize } from "sequelize";
 
@@ -45,9 +46,11 @@ export const connectDBWarehouseSequelize = new Sequelize(
       options: {
         encrypt: true,
         trustServerCertificate: true,
+        useUTC: false,
+        timeZone: "+00:00"
       },
     },
-  }
+  },
 );
 
 export const connectDBStoragingSequelize = new Sequelize(
