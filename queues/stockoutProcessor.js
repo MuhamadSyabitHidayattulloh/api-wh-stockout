@@ -43,32 +43,6 @@ stockoutQueue.process(async (job) => {
 
     await job.progress(75);
 
-    // // Proses stockout dengan batching menggunakan WarehouseService
-    // const totalBatches = Math.ceil(processedData.length / 100);
-    // let allFailedData = [];
-
-    // for (let i = 0; i < processedData.length; i += 100) {
-    //   const batchNumber = Math.floor(i / 100) + 1;
-    //   await job.progress(75 + (batchNumber / totalBatches) * 20);
-
-    //   try {
-    //     // Use WarehouseService instead of direct warehouse.js import
-    //     await WarehouseService.stockOutWithoutInstruction(
-    //       processedData.slice(i, i + 100)
-    //     );
-    //     console.log(`✅ Batch ${batchNumber} success`);
-    //   } catch (error) {
-    //     console.error(`❌ Batch ${batchNumber} failed:`, error.message);
-    //     allFailedData.push(
-    //       ...processedData.slice(i, i + 100).map((item) => ({
-    //         ...item,
-    //         error: error.message,
-    //         batchNumber: batchNumber,
-    //       }))
-    //     );
-    //   }
-    // }
-
     try {
       await WarehouseService.stockOutWithoutInstruction(processedData);
     } catch (error) {
