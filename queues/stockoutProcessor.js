@@ -52,35 +52,23 @@ stockoutQueue.process(async (job) => {
       );
       throw error;
     }
-    
+
     // Update FLAGDX
     await StockoutService.updateFlagDX(NPK, timeScan);
-    
+
     // Log failed data jika ada
-    if (failedProcessedData.length > 0 || failedLotData.length > 0) {
-      await STOCKOUT_ERROR_LOG.bulkCreate(
-        [...failedProcessedData, ...failedLotData].map((item) => ({
-          NPK: NPK,
-          ERROR_DATE: literal("GETDATE()"),
-          ERROR_TYPE: item.error ? "PROCESS_ERROR" : "LOT_ERROR",
-          ERROR_MESSAGE: item.error || "Lot sizing calculation failed",
-          RAW_DATA: JSON.stringify(item),
-          STATUS: "PENDING",
-          CREATED_AT: literal("GETDATE()"),
-        })),
-        { returning: false }
-      );
-    }
-    console.log("data yang mau di proses nich", failedProcessedData)
+    const allFailedData = [...failedProcessedData, ...failedLotData];
 
     if (allFailedData.length > 0) {
       console.log(`❌ Total failed records: ${allFailedData.length}`);
+
+      // Log ke error log
       await STOCKOUT_ERROR_LOG.bulkCreate(
         allFailedData.map((item) => ({
           NPK: NPK,
           ERROR_DATE: literal("GETDATE()"),
-          ERROR_TYPE: "BATCH_ERROR",
-          ERROR_MESSAGE: item.error,
+          ERROR_TYPE: item.error ? "PROCESS_ERROR" : "LOT_ERROR",
+          ERROR_MESSAGE: item.error || "Processing failed",
           RAW_DATA: JSON.stringify(item),
           STATUS: "PENDING",
           CREATED_AT: literal("GETDATE()"),
