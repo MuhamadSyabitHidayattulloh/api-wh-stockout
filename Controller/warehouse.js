@@ -1,231 +1,13 @@
 import moment from "moment";
 import { OneWayKanbanProcessed } from "../functions/OneWayKanbanProcessed.js";
 import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
-import {
-  createDataLotSizing,
-  getCategoryPart,
-  getDataMasterLotSizing,
-  getDataSeparationByOneWayKanbanModels,
-  getDataStoragingByOneWayKanbanModels,
-  getLineIdPart,
-  getLocationPart,
-  getModelAndProductShoppingList,
-  getShoppingList,
-  stockOutWithoutInstruction,
-} from "../Models/warehouse.js";
 import stockoutQueue from "../queues/stockoutProcessor.js";
-import { Op } from "sequelize";
-
-export const getDataStoragingByOneWayKanban = async (req, res) => {
-  try {
-    const dataStoraging = (
-      await getDataStoragingByOneWayKanbanModels(req.params.id)
-    ).recordset;
-
-    res.status(200).json({
-      msg: "get data success",
-      data: dataStoraging,
-    });
-  } catch (error) {
-    res.status(400).json({
-      msg: "get data failed",
-      errMsg: error,
-    });
-  }
-};
-
-export const getDataSeparationByOneWayKanban = async (req, res) => {
-  try {
-    const dataSeparation = (
-      await getDataSeparationByOneWayKanbanModels(req.params.id)
-    ).recordset;
-    res.status(200).json({
-      msg: "get data success",
-      data: dataSeparation,
-    });
-  } catch (error) {
-    res.status(400).json({
-      msg: "get data failed",
-      errMsg: error,
-    });
-  }
-};
-
-export const getTotalDataSeparation = async (req, res) => {
-  try {
-    const dataArray = req.body.data;
-
-    let result = [];
-    if (dataArray.length > 0) {
-      for (let index = 0; index < dataArray.length; index++) {
-        const dataSeparation = (
-          await getDataSeparationByOneWayKanbanModels(dataArray[index])
-        ).recordset;
-
-        result.push(...dataSeparation);
-      }
-    }
-
-    res.status(200).json({
-      msg: "get data success",
-      data: result,
-    });
-  } catch (error) {
-    res.status(400).json({
-      msg: "get data failed",
-      errMsg: error,
-    });
-  }
-};
-
-export const getTotalDataStoraging = async (req, res) => {
-  try {
-    const dataArray = req.body.data;
-
-    let result = [];
-    if (dataArray.length > 0) {
-      for (let index = 0; index < dataArray.length; index++) {
-        const dataStoraging = (
-          await getDataStoragingByOneWayKanbanModels(dataArray[index])
-        ).recordset;
-
-        result.push(...dataStoraging);
-      }
-    }
-
-    res.status(200).json({
-      msg: "get data success",
-      data: result,
-    });
-  } catch (error) {
-    res.status(400).json({
-      msg: "get data failed",
-      errMsg: error,
-    });
-  }
-};
-
-export const stockoutWithoutInstructionController = async (req, res) => {
-  try {
-    const data = req.body.data;
-
-    const processedData = [];
-    const failedProcessedData = [];
-    const lotFormData = [];
-    const failedLotData = [];
-
-    if (data.length > 0) {
-      for (let index = 0; index < data.length; index++) {
-        try {
-          const qrKanban = new OneWayKanbanProcessed(data[index].imgData);
-          const pattern = "NO INST";
-          const timeScan = data[index].timeScan || null;
-          const partno = qrKanban.getPartNumber();
-          const uniqueId = qrKanban.getUniqueCode();
-          const qty = qrKanban.getQtyPerKanban();
-          const partLoc = await getLocationPart(partno);
-          const partLineId = await getLineIdPart(partno);
-          const whCode = qrKanban.getWhCode();
-          const imgData = data[index].imgData;
-          const lotSizeData = await getDataMasterLotSizing(partno);
-          const kbn_scan = 1;
-          const kbn_std = lotSizeData.std_kbn_ro;
-          const qty_scan = lotSizeData.qty_scan;
-          const kbn_lot = lotSizeData.qty_after_ls;
-          const line_id = lotSizeData.ls_table;
-          const status = 1;
-
-          processedData.push({
-            pattern: pattern,
-            idbox_no: imgData,
-            timescan_idbox: timeScan,
-            partno: partno,
-            kbn_seq: uniqueId,
-            qty_kbn_std: qty,
-            qty_kbn_act: 1,
-            wh_loc: partLoc,
-            line_id: partLineId,
-            operator: data[index].NPK,
-            status: 1,
-            complete: 1,
-            create_by: data[index].NPK,
-            create_date: timeScan,
-            wh_code: whCode,
-          });
-
-          if (lotSizeData.lot_sizing > 0) {
-            lotFormData.push({
-              partno: partno,
-              kbn_scan: kbn_scan,
-              kbn_std: kbn_std,
-              qty_scan: qty_scan,
-              kbn_lot: kbn_lot,
-              create_by: data[index.NPK],
-              create_date: timeScan,
-              line_id: line_id,
-              wh_code: whCode,
-              status: status,
-            });
-          }
-        } catch (error) {
-          console.error(
-            `Error processing data with imgData : ${imgData}`,
-            error
-          );
-          failedProcessedData.push({
-            ...data[index],
-            error: error.message,
-          });
-        }
-      }
-    }
-
-    if (lotFormData.length > 0) {
-      const lotResult = await createDataLotSizing(lotFormData);
-      failedLotData.push(...lotResult.failedData);
-    }
-
-    await stockOutWithoutInstruction(processedData);
-
-    res.status(200).json({
-      msg: "Insert data success",
-      failedProcessedData,
-    });
-  } catch (error) {
-    console.log(error);
-    if (error.message === "Data kosong") {
-      res.status(400).json({
-        msg: "Data tidak terdaftar",
-        errMsg: error,
-      });
-    } else if (error.message === "Data tidak dapat di proses") {
-      res.status(400).json({
-        msg: "Data tidak dapat di proses",
-        errMsg: error,
-      });
-    } else if (error.code === "PART_NOT_FOUND") {
-      res.status(401).json({
-        msg: "Part number tidak ditemukan. Periksa Master WH",
-        errMsg: error,
-      });
-    } else if (error.code === "GET_LINE_ID_PART_ERROR") {
-      res.status(401).json({
-        msg: "Terjadi kesalahan pada server.",
-        errMsg: error,
-      });
-    } else {
-      res.status(500).json({
-        msg: "Internal Server Error, Data tidak terdaftar",
-        errMsg: error,
-      });
-    }
-  }
-};
+import { WarehouseService } from "../services/warehouseService.js";
 
 export const getPartCategoryShopping = async (req, res) => {
   try {
     const data = req.body.partNumberAssy;
-    const result = await getCategoryPart(data);
+    const result = await WarehouseService.getCategoryPart(data);
 
     res.status(200).json({
       msg: "Get data success",
@@ -239,41 +21,22 @@ export const getPartCategoryShopping = async (req, res) => {
   }
 };
 
-export const getDetailShoppingList = async (req, res) => {
+export const getShoppingListController = async (req, res) => {
   try {
-    const partNumberAssy = req.body.partNumberAssy;
-    const modelAndProduct = await getModelAndProductShoppingList(
-      partNumberAssy
-    );
-    const model = modelAndProduct.model;
-    const product = modelAndProduct.product;
-    const resultShoppingList = await getShoppingList(partNumberAssy);
+    const partno = req.body.partNumberAssy;
+    const shoppingList = await WarehouseService.getShoppingList(partno);
+    const modelAndProduct =
+      await WarehouseService.getModelAndProductShoppingList(partno);
 
     res.status(200).json({
-      msg: "Get data berhasil !!!",
-      result: {
-        partNumberAssy: partNumberAssy,
-        model: model,
-        product: product,
-        shoppingList: resultShoppingList,
-      },
+      msg: "Get shopping list success",
+      shoppingList: shoppingList,
+      model: modelAndProduct.model,
+      product: modelAndProduct.product,
     });
   } catch (error) {
     res.status(400).json({
-      msg: "Get data gagal !!!",
-      errMsg: error,
-    });
-  }
-};
-
-export const stockoutInstructionController = async (req, res) => {
-  try {
-    res.status(200).json({
-      msg: "Insert data berhasil !!!",
-    });
-  } catch (error) {
-    res.status(400).json({
-      msg: "Insert data gagal !!!",
+      msg: "Get shopping list failed",
       errMsg: error,
     });
   }
@@ -282,7 +45,6 @@ export const stockoutInstructionController = async (req, res) => {
 export const stoctkoutAndroidWHSystem = async (req, res) => {
   try {
     const data = req.body.data;
-    console.log("insert data", data);
     const slip = req.body.slip;
 
     if (!data?.length) {
@@ -295,8 +57,6 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
       const formattedTime = moment(item.timeScan).format("HH:mm:ss");
 
       return {
-        // imgData: item.imgData,
-        // timeScan: item.timeScan,
         SLIP: slip || null,
         NPK: item.NPK,
         PARTNO: oneWayKanban.getTotalPartNumber(),
@@ -310,61 +70,34 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
         FLAGDX: 0,
       };
     });
-
-    console.log("bulkData", bulkData)
-
-    // const existingData = await STOCKOUT_T_TRANSACTION_2.findAll({
-    //   where: {
-    //     [Op.or]: bulkData.map((item) => ({
-    //       [Op.and]: {
-    //         PARTNO: item.PARTNO,
-    //         SQ: item.SQ,
-    //         WH: item.WH,
-    //       },
-    //     })),
-    //   },
-    //   attributes: {
-    //     exclude: ["id"],
-    //   },
-    // });
-
-    // const existingSet = new Set(
-    //   existingData.map((item) => `${item.PARTNO}-${item.SQ}-${item.WH}`)
-    // );
-
-    // console.log("data yang sama nih: ", existingSet);
-
-    // const newData = bulkData.filter(
-    //   (item) => !existingSet.has(`${item.PARTNO}-${item.SQ}-${item.WH}`)
-    // );
-
-    // console.log("data yang boleh di stockout nih: ", newData);
-
-    // console.log(`Total data: ${bulkData.length}`);
-    // console.log(`Data yang sudah ada: ${existingData.length}`);
-    // console.log(`Data baru yang akan diinsert: ${newData.length}`);
-
-    // if (newData.length > 0) {
-    //   await STOCKOUT_T_TRANSACTION_2.bulkCreate(newData, { returning: false });
-    //   // Add job ke queue
-    //   await stockoutQueue.add({
-    //     data: newData,
-    //     NPK: data[0].NPK,
-    //     timeScan: data[0].timeScan,
-    //   });
-    // }
-
     // Bulk insert ke database
     await STOCKOUT_T_TRANSACTION_2.bulkCreate(bulkData, { returning: false });
 
-    await stockoutQueue.add({
-      data: data,
-      NPK: data[0].NPK,
-      timeScan: data[0].timeScan,
-    });
+    const BATCH_SIZE = 25;
+    const totalBatches = Math.ceil(data.length / BATCH_SIZE);
+
+    console.log(
+      `�� Total data: ${data.length}, akan diproses dalam ${totalBatches} batch (${BATCH_SIZE} data per batch)`
+    );
+
+    for (let index = 0; index < data.length; index += BATCH_SIZE) {
+      const batchData = data.slice(index, index + BATCH_SIZE);
+      const batchNumber = Math.floor(index / BATCH_SIZE);
+
+      await stockoutQueue.add({
+        data: batchData,
+        NPK: batchData[0].NPK,
+        timeScan: batchData[0].timeScan,
+        batchNumber: batchNumber,
+        totalBatches: totalBatches,
+        batchSize: batchData.length,
+      });
+    }
 
     res.status(200).json({
       msg: "Stockout Success",
+      totalData: data.length,
+      totalBatches: totalBatches,
     });
   } catch (error) {
     console.error("Error:", error);

@@ -1,13 +1,9 @@
 import Queue from "bull";
 import { redisConfig } from "../Config/redis.js";
-import {
-  createDataLotSizing,
-  stockOutWithoutInstruction,
-} from "../Models/warehouse.js";
-import { StockoutService } from "../services/stockoutService.js";
 import STOCKOUT_ERROR_LOG from "../Models/STOCKOUT_ERROR_LOG.js";
-import moment from "moment";
 import { literal } from "sequelize";
+import { WarehouseService } from "../services/warehouseService.js";
+import { StockoutService } from "../services/stockoutService.js";
 
 // Buat queue untuk processing
 const stockoutQueue = new Queue("stockoutProcessing", redisConfig);
@@ -19,45 +15,69 @@ stockoutQueue.defaultJobOptions = {
     type: "exponential",
     delay: 1000,
   },
-  removeOnComplete: true, // Hapus job yang sukses
-  removeOnFail: false, // Simpan job yang gagal untuk analisis
+  removeOnComplete: true,
+  removeOnFail: false,
 };
 
 // Process jobs
 stockoutQueue.process(async (job) => {
-  const { data, NPK, timeScan } = job.data;
+  const { data, NPK, timeScan, batchNumber, totalBatches, batchSize } =
+    job.data;
 
   try {
-    // Update progress
     await job.progress(10);
 
     // Proses data menggunakan service
     const { processedData, failedProcessedData, lotFormData, failedLotData } =
       await StockoutService.processStockoutData(data, NPK, timeScan);
 
-    // console.log("process data", processedData)
-    // console.log("failed data", failedProcessedData)
-    // console.log("lot form data", lotFormData)
-    // console.log("failed lot data", failedLotData)
-
-    // Update progress
     await job.progress(50);
 
     // Proses lot sizing
     if (lotFormData.length > 0) {
-      // console.log("Ada data yang di lot sizing gessss: ", lotFormData);
-      // await createDataLotSizing(lotFormData);
       await StockoutService.lotFormDataProcess(lotFormData);
     }
 
     await StockoutService.fifoChecking(data, NPK);
     await StockoutService.stockoutTemporaryData(data);
 
-    // Update progress
     await job.progress(75);
 
-    // Proses stockout
-    await stockOutWithoutInstruction(processedData);
+    // // Proses stockout dengan batching menggunakan WarehouseService
+    // const totalBatches = Math.ceil(processedData.length / 100);
+    // let allFailedData = [];
+
+    // for (let i = 0; i < processedData.length; i += 100) {
+    //   const batchNumber = Math.floor(i / 100) + 1;
+    //   await job.progress(75 + (batchNumber / totalBatches) * 20);
+
+    //   try {
+    //     // Use WarehouseService instead of direct warehouse.js import
+    //     await WarehouseService.stockOutWithoutInstruction(
+    //       processedData.slice(i, i + 100)
+    //     );
+    //     console.log(`✅ Batch ${batchNumber} success`);
+    //   } catch (error) {
+    //     console.error(`❌ Batch ${batchNumber} failed:`, error.message);
+    //     allFailedData.push(
+    //       ...processedData.slice(i, i + 100).map((item) => ({
+    //         ...item,
+    //         error: error.message,
+    //         batchNumber: batchNumber,
+    //       }))
+    //     );
+    //   }
+    // }
+
+    try {
+      await WarehouseService.stockOutWithoutInstruction(processedData);
+    } catch (error) {
+      console.error(
+        `❌ Batch ${batchNumber}/${totalBatches} gagal:`,
+        error.message
+      );
+      throw error;
+    }
 
     // Update FLAGDX
     await StockoutService.updateFlagDX(NPK, timeScan);
@@ -71,33 +91,47 @@ stockoutQueue.process(async (job) => {
           ERROR_TYPE: item.error ? "PROCESS_ERROR" : "LOT_ERROR",
           ERROR_MESSAGE: item.error || "Lot sizing calculation failed",
           RAW_DATA: JSON.stringify(item),
-          STATUS: "PENDING", // PENDING, RESOLVED, IGNORED
+          STATUS: "PENDING",
           CREATED_AT: literal("GETDATE()"),
         })),
-        {
-          returning: false,
-        }
+        { returning: false }
       );
     }
-    console.log(failedProcessedData);
 
-    // Update progress
+    if (allFailedData.length > 0) {
+      console.log(`❌ Total failed records: ${allFailedData.length}`);
+      await STOCKOUT_ERROR_LOG.bulkCreate(
+        allFailedData.map((item) => ({
+          NPK: NPK,
+          ERROR_DATE: literal("GETDATE()"),
+          ERROR_TYPE: "BATCH_ERROR",
+          ERROR_MESSAGE: item.error,
+          RAW_DATA: JSON.stringify(item),
+          STATUS: "PENDING",
+          CREATED_AT: literal("GETDATE()"),
+        })),
+        { returning: false }
+      );
+    }
+
     await job.progress(100);
 
     return {
       success: true,
+      batchNumber: batchNumber,
+      totalBatches: totalBatches,
+      batchSize: batchSize,
       failedProcessedData,
       failedLotData,
     };
   } catch (error) {
-    console.error("Job processing error:", error);
+    console.error(`Job processing error in batch ${batchNumber}:`, error);
 
-    // Log system error
     await STOCKOUT_ERROR_LOG.create({
       NPK: NPK,
       ERROR_DATE: literal("GETDATE()"),
-      ERROR_TYPE: "SYSTEM_ERROR",
-      ERROR_MESSAGE: error.message,
+      ERROR_TYPE: "BATCH_PROCESSING_ERROR",
+      ERROR_MESSAGE: `Batch ${batchNumber} error: ${error.message}`,
       RAW_DATA: JSON.stringify(data),
       STATUS: "PENDING",
       CREATED_AT: literal("GETDATE()"),
