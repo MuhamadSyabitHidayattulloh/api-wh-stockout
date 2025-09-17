@@ -1,8 +1,8 @@
-import { DataTypes } from "sequelize";
-import { connectDBWarehouseSequelize } from "../Config/dbConnection.js";
+import { DataTypes } from 'sequelize';
+import { connectDBWarehouseSequelize } from '../Config/dbConnection.js';
 
 const STOCKOUT_T_TRANSACTION_2 = connectDBWarehouseSequelize.define(
-  "STOCKOUT_T_TRANSACTION_2",
+  'STOCKOUT_T_TRANSACTION_2',
   {
     SLIP: {
       type: DataTypes.STRING(10),
@@ -58,12 +58,16 @@ const STOCKOUT_T_TRANSACTION_2 = connectDBWarehouseSequelize.define(
       allowNull: true,
       defaultValue: 0,
     },
+    DEVICE_ID: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
   },
   {
-    tableName: "STOCKOUT_T_TRANSACTION_2",
-    schema: "dbo",
+    tableName: 'STOCKOUT_T_TRANSACTION_2',
+    schema: 'dbo',
     timestamps: false,
-  }
+  },
 );
 
 export default STOCKOUT_T_TRANSACTION_2;

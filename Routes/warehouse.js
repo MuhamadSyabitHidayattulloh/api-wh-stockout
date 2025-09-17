@@ -1,8 +1,8 @@
-import express from "express";
+import express from 'express';
 import {
   getPartCategoryShopping,
   stoctkoutAndroidWHSystem,
-} from "../Controller/warehouse.js";
+} from '../Controller/warehouse.js';
 
 const router = express.Router();
 
@@ -19,8 +19,8 @@ const router = express.Router();
  *           text/plain:
  *             example: "PE DEVELOPMENT 2024"
  */
-router.get("/testRoute", (req, res) => {
-  res.send("PE DEVELOPMENT 2024");
+router.get('/testRoute', (req, res) => {
+  res.send('PE DEVELOPMENT 2024');
 });
 
 /**
@@ -48,7 +48,7 @@ router.get("/testRoute", (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.post("/getCategoryPart", getPartCategoryShopping);
+router.post('/getCategoryPart', getPartCategoryShopping);
 
 /**
  * @swagger
@@ -63,18 +63,32 @@ router.post("/getCategoryPart", getPartCategoryShopping);
  *           schema:
  *             type: object
  *             properties:
- *               partNo:
+ *               data:
+ *                 type: array
+ *                 description: Array data stockout
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     imgData:
+ *                       type: string
+ *                       description: QR code data
+ *                     timeScan:
+ *                       type: string
+ *                       description: Waktu scan
+ *                     NPK:
+ *                       type: string
+ *                       description: Nomor Pegawai
+ *                     processId:
+ *                       type: string
+ *                       description: Process ID
+ *               slip:
  *                 type: string
- *                 description: Nomor part
- *                 example: "PART001"
- *               quantity:
- *                 type: number
- *                 description: Jumlah yang di-stockout
- *                 example: 10
- *               location:
+ *                 description: Nomor slip
+ *                 example: "F1234567890"
+ *               deviceId:
  *                 type: string
- *                 description: Lokasi warehouse
- *                 example: "LOC001"
+ *                 description: Device ID untuk tracking
+ *                 example: "device-uuid-12345"
  *     responses:
  *       200:
  *         description: Stockout berhasil diproses
@@ -83,6 +97,6 @@ router.post("/getCategoryPart", getPartCategoryShopping);
  *       500:
  *         description: Internal server error
  */
-router.post("/stockoutAndroid", stoctkoutAndroidWHSystem);
+router.post('/stockoutAndroid', stoctkoutAndroidWHSystem);
 
 export default router;
