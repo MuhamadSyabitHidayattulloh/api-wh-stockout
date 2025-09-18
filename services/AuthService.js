@@ -69,7 +69,7 @@ export class AuthService {
 
         foundTargetHash =
           processedUsers.find(
-            (item) => item.usernameAfter === usernameEncrypted
+            (item) => item.usernameAfter === usernameEncrypted.toUpperCase()
           ) || false;
       }
 
