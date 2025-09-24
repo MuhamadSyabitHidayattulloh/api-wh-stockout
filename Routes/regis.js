@@ -1,7 +1,7 @@
-import express from "express";
-import * as registrationController from "../Controller/regis.js";
-import { authenticateToken } from "../Middleware/auth_middleware.js";
-import { body, validationResult } from "express-validator";
+import express from 'express';
+import * as registrationController from '../Controller/regis.js';
+import { authenticateToken } from '../Middleware/auth_middleware.js';
+import { body, validationResult } from 'express-validator';
 
 const router = express.Router();
 
@@ -10,8 +10,8 @@ const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
-      msg: "Validation failed",
-      status: "validationError",
+      msg: 'Validation failed',
+      status: 'validationError',
       errors: errors.array(),
     });
   }
@@ -20,29 +20,30 @@ const handleValidationErrors = (req, res, next) => {
 
 // Registration validation rules
 const registrationValidation = [
-  body("userID")
+  body('userID')
     .isLength({ min: 3 })
-    .withMessage("User ID must be at least 3 characters")
+    .withMessage('User ID must be at least 3 characters')
     .matches(/^\w+$/)
-    .withMessage("User ID can only contain letters, numbers, and underscores"),
-  body("password")
+    .withMessage('User ID can only contain letters, numbers, and underscores'),
+  body('password')
     .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters"),
-  body("name")
+    .withMessage('Password must be at least 6 characters'),
+  body('name')
     .isLength({ min: 2 })
-    .withMessage("Name must be at least 2 characters"),
-  body("email").optional().isEmail().withMessage("Invalid email format"),
-  body("company").notEmpty().withMessage("Company is required"),
-  body("plant").notEmpty().withMessage("Plant is required"),
+    .withMessage('Name must be at least 2 characters'),
+  body('email').optional().isEmail().withMessage('Invalid email format'),
+  body('company').notEmpty().withMessage('Company is required'),
+  body('plant').notEmpty().withMessage('Plant is required'),
+  body('buCode').optional().isString().withMessage('BU code must be a string'),
 ];
 
 // User check validation
 const userCheckValidation = [
-  body("userID")
+  body('userID')
     .notEmpty()
-    .withMessage("User ID is required")
+    .withMessage('User ID is required')
     .isLength({ min: 3 })
-    .withMessage("User ID must be at least 3 characters"),
+    .withMessage('User ID must be at least 3 characters'),
 ];
 
 /**
@@ -71,10 +72,10 @@ const userCheckValidation = [
  *         description: Validation error
  */
 router.post(
-  "/checkNpk",
+  '/checkNpk',
   userCheckValidation,
   handleValidationErrors,
-  registrationController.checkNpk
+  registrationController.checkNpk,
 );
 
 /**
@@ -108,9 +109,9 @@ router.post(
  *         description: Unauthorized
  */
 router.post(
-  "/updateRole",
+  '/updateRole',
   authenticateToken,
-  registrationController.updateRole
+  registrationController.updateRole,
 );
 
 /**
@@ -123,19 +124,51 @@ router.post(
  *       200:
  *         description: Daftar company berhasil diambil
  */
-router.get("/showCompany", registrationController.showCompany);
+router.get('/showCompany', registrationController.showCompany);
 
 /**
  * @swagger
  * /api/registration/showPlant:
  *   get:
- *     summary: Tampilkan daftar plant
+ *     summary: Tampilkan daftar plant berdasarkan company
  *     tags: [Registration]
+ *     parameters:
+ *       - in: query
+ *         name: companyCode
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Company code
  *     responses:
  *       200:
  *         description: Daftar plant berhasil diambil
  */
-router.get("/showPlant", registrationController.showPlant);
+router.get('/showPlant', registrationController.showPlant);
+
+/**
+ * @swagger
+ * /api/registration/showBU:
+ *   get:
+ *     summary: Tampilkan daftar BU berdasarkan company dan plant
+ *     tags: [Registration]
+ *     parameters:
+ *       - in: query
+ *         name: companyCode
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Company code
+ *       - in: query
+ *         name: plantCode
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Plant code
+ *     responses:
+ *       200:
+ *         description: Daftar BU berhasil diambil
+ */
+router.get('/showBU', registrationController.showBU);
 
 /**
  * @swagger
@@ -181,6 +214,10 @@ router.get("/showPlant", registrationController.showPlant);
  *                 type: string
  *                 description: Plant
  *                 example: "Plant 1"
+ *               buCode:
+ *                 type: string
+ *                 description: BU Code (optional)
+ *                 example: "BU001"
  *     responses:
  *       200:
  *         description: Registrasi berhasil
@@ -188,10 +225,10 @@ router.get("/showPlant", registrationController.showPlant);
  *         description: Validation error
  */
 router.post(
-  "/registerNew",
+  '/registerNew',
   registrationValidation,
   handleValidationErrors,
-  registrationController.registerNew
+  registrationController.registerNew,
 );
 
 /**
@@ -218,9 +255,9 @@ router.post(
  *         description: User tidak ditemukan
  */
 router.get(
-  "/user/:username",
+  '/user/:username',
   authenticateToken,
-  registrationController.getUserInfo
+  registrationController.getUserInfo,
 );
 
 /**
@@ -254,9 +291,9 @@ router.get(
  *         description: Unauthorized
  */
 router.post(
-  "/updateStockoutRole",
+  '/updateStockoutRole',
   authenticateToken,
-  registrationController.updateStockoutRole
+  registrationController.updateStockoutRole,
 );
 
 /**
@@ -280,8 +317,8 @@ router.post(
  *         description: Validasi berhasil
  */
 router.post(
-  "/validateRegistration",
-  registrationController.validateRegistration
+  '/validateRegistration',
+  registrationController.validateRegistration,
 );
 
 /**
@@ -306,12 +343,12 @@ router.post(
  *                   type: string
  *                   format: date-time
  */
-router.get("/testRoute", (req, res) =>
+router.get('/testRoute', (req, res) =>
   res.json({
-    msg: "Registration service test route",
-    status: "success",
+    msg: 'Registration service test route',
+    status: 'success',
     timestamp: new Date().toISOString(),
-  })
+  }),
 );
 
 export default router;
