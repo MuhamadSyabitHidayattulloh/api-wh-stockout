@@ -48,7 +48,12 @@ export class RegistrationService {
         order: [['company_name', 'ASC']],
       });
 
-      return companies;
+      // Trim whitespace from all string fields
+      return companies.map(company => ({
+        ...company.toJSON(),
+        company_name: company.company_name?.trim(),
+        company_name_as: company.company_name_as?.trim(),
+      }));
     } catch (error) {
       console.error('Error fetching companies', error);
       throw error;
@@ -62,11 +67,16 @@ export class RegistrationService {
           company_code: companyCode,
           active_flag: 'A',
         },
-        attributes: ['plant_code', 'plant_name'],
+        attributes: ['plant_code', 'plant_name', 'plant_name_alias'],
         order: [['plant_name', 'ASC']],
       });
 
-      return plants;
+      // Trim whitespace from all string fields
+      return plants.map(plant => ({
+        ...plant.toJSON(),
+        plant_name: plant.plant_name?.trim(),
+        plant_name_alias: plant.plant_name_alias?.trim(),
+      }));
     } catch (error) {
       console.error('Error fetching plants', error);
       throw error;
@@ -85,7 +95,12 @@ export class RegistrationService {
         order: [['bu_name', 'ASC']],
       });
 
-      return bus;
+      // Trim whitespace from all string fields
+      return bus.map(bu => ({
+        ...bu.toJSON(),
+        bu_name: bu.bu_name?.trim(),
+        bu_name_alias: bu.bu_name_alias?.trim(),
+      }));
     } catch (error) {
       console.error('Error fetching BUs', error);
       throw error;
