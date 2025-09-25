@@ -1,9 +1,9 @@
-// Models/LS_T_REPORT_MOBILE_1.js
+// Models/LS_T_REPORT_MOBILE.js
 import { DataTypes } from "sequelize";
 import { connectDBWarehouseSequelize } from "../Config/dbConnection.js";
 
-const LS_T_REPORT_MOBILE_1 = connectDBWarehouseSequelize.define(
-  "LS_T_REPORT_MOBILE_1",
+const LS_T_REPORT_MOBILE = connectDBWarehouseSequelize.define(
+  "LS_T_REPORT_MOBILE",
   {
     id: {
       autoIncrement: true,
@@ -77,10 +77,10 @@ const LS_T_REPORT_MOBILE_1 = connectDBWarehouseSequelize.define(
     },
   },
   {
-    tableName: "LS_T_REPORT_MOBILE_1",
+    tableName: "LS_T_REPORT_MOBILE",
     schema: "dbo",
     timestamps: false,
   }
 );
 
-export default LS_T_REPORT_MOBILE_1;
+export default LS_T_REPORT_MOBILE;
