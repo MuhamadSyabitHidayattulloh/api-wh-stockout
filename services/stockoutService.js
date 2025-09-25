@@ -91,6 +91,7 @@ export class StockoutService {
 
   static async updateFlagDX(NPK, timeScan) {
     await STOCKOUT_T_TRANSACTION.update(
+    await STOCKOUT_T_TRANSACTION.update(
       { FLAGDX: 1 },
       {
         where: {
