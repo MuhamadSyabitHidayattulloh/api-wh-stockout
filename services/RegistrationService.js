@@ -28,7 +28,6 @@ export class RegistrationService {
 
   static async updateUserRole(username, role = 0) {
     try {
-      console.log(username, role);
       const [affectedRows] = await MASTER_LOGIN.update(
         { stockout_wh_role: role },
         { where: { username: username } }
