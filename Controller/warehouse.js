@@ -72,7 +72,6 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
     });
     // Bulk insert ke database
     await STOCKOUT_T_TRANSACTION.bulkCreate(bulkData, { returning: false });
-    await STOCKOUT_T_TRANSACTION.bulkCreate(bulkData, { returning: false });
 
     await stockoutQueue.add({
       data: data,

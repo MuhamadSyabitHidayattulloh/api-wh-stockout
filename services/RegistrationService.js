@@ -1,16 +1,16 @@
 // services/RegistrationService.js
-import MASTER_LOGIN from '../Models/MASTER_LOGIN.js';
-import MASTER_COMPANY from '../Models/MASTER_COMPANY.js';
-import MASTER_PLANT from '../Models/MASTER_PLANT.js';
-import MASTER_BU from '../Models/MASTER_BU.js';
-import { AuthService } from './AuthService.js';
+import MASTER_LOGIN from "../Models/MASTER_LOGIN.js";
+import MASTER_COMPANY from "../Models/MASTER_COMPANY.js";
+import MASTER_PLANT from "../Models/MASTER_PLANT.js";
+import MASTER_BU from "../Models/MASTER_BU.js";
+import { AuthService } from "./AuthService.js";
 
 export class RegistrationService {
   static async checkUserExists(username) {
     try {
       const user = await MASTER_LOGIN.findOne({
         where: { username: username },
-        attributes: ['username', 'stockout_wh_role'],
+        attributes: ["username", "stockout_wh_role"],
       });
 
       return user
@@ -21,21 +21,22 @@ export class RegistrationService {
           }
         : { exists: false };
     } catch (error) {
-      console.error('Error checking user existence', error);
+      console.error("Error checking user existence", error);
       throw error;
     }
   }
 
   static async updateUserRole(username, role = 0) {
     try {
+      console.log(username, role);
       const [affectedRows] = await MASTER_LOGIN.update(
-        { warehouse_role: role },
-        { where: { username: username } },
+        { stockout_wh_role: role },
+        { where: { username: username } }
       );
 
       return affectedRows > 0;
     } catch (error) {
-      console.error('Error updating user role', error);
+      console.error("Error updating user role", error);
       throw error;
     }
   }
@@ -43,19 +44,19 @@ export class RegistrationService {
   static async getAllCompanies() {
     try {
       const companies = await MASTER_COMPANY.findAll({
-        where: { active_flag: 'A' },
-        attributes: ['company_code', 'company_name', 'company_name_as'],
-        order: [['company_name', 'ASC']],
+        where: { active_flag: "A" },
+        attributes: ["company_code", "company_name", "company_name_as"],
+        order: [["company_name", "ASC"]],
       });
 
       // Trim whitespace from all string fields
-      return companies.map(company => ({
+      return companies.map((company) => ({
         ...company.toJSON(),
         company_name: company.company_name?.trim(),
         company_name_as: company.company_name_as?.trim(),
       }));
     } catch (error) {
-      console.error('Error fetching companies', error);
+      console.error("Error fetching companies", error);
       throw error;
     }
   }
@@ -65,20 +66,20 @@ export class RegistrationService {
       const plants = await MASTER_PLANT.findAll({
         where: {
           company_code: companyCode,
-          active_flag: 'A',
+          active_flag: "A",
         },
-        attributes: ['plant_code', 'plant_name', 'plant_name_alias'],
-        order: [['plant_name', 'ASC']],
+        attributes: ["plant_code", "plant_name", "plant_name_alias"],
+        order: [["plant_name", "ASC"]],
       });
 
       // Trim whitespace from all string fields
-      return plants.map(plant => ({
+      return plants.map((plant) => ({
         ...plant.toJSON(),
         plant_name: plant.plant_name?.trim(),
         plant_name_alias: plant.plant_name_alias?.trim(),
       }));
     } catch (error) {
-      console.error('Error fetching plants', error);
+      console.error("Error fetching plants", error);
       throw error;
     }
   }
@@ -89,20 +90,20 @@ export class RegistrationService {
         where: {
           company_code: companyCode,
           plant_code: plantCode,
-          active_flag: 'A',
+          active_flag: "A",
         },
-        attributes: ['bu_code', 'bu_name', 'bu_name_alias'],
-        order: [['bu_name', 'ASC']],
+        attributes: ["bu_code", "bu_name", "bu_name_alias"],
+        order: [["bu_name", "ASC"]],
       });
 
       // Trim whitespace from all string fields
-      return bus.map(bu => ({
+      return bus.map((bu) => ({
         ...bu.toJSON(),
         bu_name: bu.bu_name?.trim(),
         bu_name_alias: bu.bu_name_alias?.trim(),
       }));
     } catch (error) {
-      console.error('Error fetching BUs', error);
+      console.error("Error fetching BUs", error);
       throw error;
     }
   }
@@ -114,21 +115,22 @@ export class RegistrationService {
 
       // Validate input
       if (!userID || !password || !name) {
-        throw new Error('Required fields missing: userID, password, name');
+        throw new Error("Required fields missing: userID, password, name");
       }
 
       // Check if user already exists
       const existingUser = await this.checkUserExists(userID);
       if (existingUser.exists) {
-        throw new Error('User already exists');
+        throw new Error("User already exists");
       }
 
       // Validate company code exists
       const companyRecord = await MASTER_COMPANY.findOne({
-        where: { company_code: company, active_flag: 'A' },
+        where: { company_code: company, active_flag: "A" },
       });
+
       if (!companyRecord) {
-        throw new Error('Invalid company code');
+        throw new Error("Invalid company code");
       }
 
       // Validate plant code exists for the company
@@ -136,11 +138,11 @@ export class RegistrationService {
         where: {
           company_code: company,
           plant_code: plant,
-          active_flag: 'A',
+          active_flag: "A",
         },
       });
       if (!plantRecord) {
-        throw new Error('Invalid plant code for the selected company');
+        throw new Error("Invalid plant code for the selected company");
       }
 
       // Validate BU code if provided
@@ -151,11 +153,11 @@ export class RegistrationService {
             company_code: company,
             plant_code: plant,
             bu_code: buCode,
-            active_flag: 'A',
+            active_flag: "A",
           },
         });
         if (!buRecord) {
-          throw new Error('Invalid BU code for the selected company and plant');
+          throw new Error("Invalid BU code for the selected company and plant");
         }
       }
 
@@ -172,12 +174,11 @@ export class RegistrationService {
         company_code: company,
         plant_code: plant,
         stockout_wh_role: 1,
-        created_by: userID,
-        created_date: new Date(),
-        updated_by: userID,
-        updated_date: new Date(),
-        active_flag: 'Y',
+        create_by: userID,
+        create_date: new Date(),
+        active_flag: "A",
       });
+      console.log("test", newUser);
 
       return {
         success: true,
@@ -191,7 +192,7 @@ export class RegistrationService {
         },
       };
     } catch (error) {
-      console.error('Error registering new user', error);
+      console.error("Error registering new user", error);
       throw error;
     }
   }
@@ -201,36 +202,37 @@ export class RegistrationService {
 
     const { userID, password, name, email, company, plant, buCode } = userData;
 
+    console.log("test", userID);
     // Basic validation
     if (!userID || userID.trim().length < 3) {
-      errors.push('User ID must be at least 3 characters');
+      errors.push("User ID must be at least 3 characters");
     }
 
     if (!password || password.length < 6) {
-      errors.push('Password must be at least 6 characters');
+      errors.push("Password must be at least 6 characters");
     }
 
     if (!name || name.trim().length < 2) {
-      errors.push('Name must be at least 2 characters');
+      errors.push("Name must be at least 2 characters");
     }
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.push('Invalid email format');
+      errors.push("Invalid email format");
     }
 
     if (!company) {
-      errors.push('Company is required');
+      errors.push("Company is required");
     }
 
     if (!plant) {
-      errors.push('Plant is required');
+      errors.push("Plant is required");
     }
 
     // Check if username already exists
     if (userID) {
       const existingUser = await this.checkUserExists(userID);
       if (existingUser.exists) {
-        errors.push('Username already exists');
+        errors.push("Username already exists");
       }
     }
 
@@ -245,15 +247,15 @@ export class RegistrationService {
       const [affectedRows] = await MASTER_LOGIN.update(
         {
           stockout_wh_role: role,
-          updated_date: new Date(),
-          updated_by: username,
+          update_date: new Date(),
+          update_by: username,
         },
-        { where: { username: username } },
+        { where: { username: username } }
       );
 
       return affectedRows > 0;
     } catch (error) {
-      console.error('Error updating user stockout role', error);
+      console.error("Error updating user stockout role", error);
       throw error;
     }
   }
@@ -263,13 +265,13 @@ export class RegistrationService {
       const user = await MASTER_LOGIN.findOne({
         where: { username: username },
         attributes: [
-          'username',
-          'name',
-          'email',
-          'company_code',
-          'plant_code',
-          'stockout_wh_role',
-          'created_date',
+          "username",
+          "name",
+          "email",
+          "company_code",
+          "plant_code",
+          "stockout_wh_role",
+          "create_date",
         ],
       });
 
@@ -280,7 +282,7 @@ export class RegistrationService {
       // Get company and plant details
       const company = await MASTER_COMPANY.findOne({
         where: { company_code: user.company_code },
-        attributes: ['company_name', 'company_name_as'],
+        attributes: ["company_name", "company_name_as"],
       });
 
       const plant = await MASTER_PLANT.findOne({
@@ -288,7 +290,7 @@ export class RegistrationService {
           company_code: user.company_code,
           plant_code: user.plant_code,
         },
-        attributes: ['plant_name'],
+        attributes: ["plant_name"],
       });
 
       const bu = user.bu_code
@@ -298,7 +300,7 @@ export class RegistrationService {
               plant_code: user.plant_code,
               bu_code: user.bu_code,
             },
-            attributes: ['bu_name', 'bu_name_alias'],
+            attributes: ["bu_name", "bu_name_alias"],
           })
         : null;
 
@@ -323,10 +325,10 @@ export class RegistrationService {
             }
           : null,
         stockout_wh_role: user.stockout_wh_role,
-        registered_date: user.created_date,
+        registered_date: user.create_date,
       };
     } catch (error) {
-      console.error('Error getting user registration info', error);
+      console.error("Error getting user registration info", error);
       throw error;
     }
   }
