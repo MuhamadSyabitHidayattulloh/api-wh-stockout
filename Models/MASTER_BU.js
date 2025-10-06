@@ -4,33 +4,21 @@ import { connectDBMasterSequelize } from "../Config/dbConnection.js";
 const MASTER_BU = connectDBMasterSequelize.define(
   "master_bu",
   {
+    uuid: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
     bu_code: {
-      type: DataTypes.CHAR(10),
+      type: DataTypes.STRING(5),
       allowNull: false,
       primaryKey: true,
     },
     bu_name: {
-      type: DataTypes.CHAR(50),
+      type: DataTypes.STRING(50),
       allowNull: false,
     },
-    bu_name_alias: {
-      type: DataTypes.CHAR(15),
-      allowNull: true,
-    },
-    bu_product: {
-      type: DataTypes.STRING(8),
-      allowNull: true,
-    },
-    category_code: {
-      type: DataTypes.CHAR(2),
-      allowNull: true,
-    },
-    group_code: {
-      type: DataTypes.CHAR(10),
-      allowNull: true,
-    },
-    image_bu: {
-      type: DataTypes.STRING(500),
+    bu_as: {
+      type: DataTypes.STRING(50),
       allowNull: true,
     },
     company_code: {
@@ -42,11 +30,47 @@ const MASTER_BU = connectDBMasterSequelize.define(
       allowNull: false,
       primaryKey: true,
     },
-    section: {
-      type: DataTypes.CHAR(2),
+    product: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+    },
+    product_code: {
+      type: DataTypes.STRING(5),
       allowNull: true,
     },
     dept_code: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    dept: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+    },
+    bu_name_alias: {
+      type: DataTypes.STRING(15),
+      allowNull: true,
+    },
+    category_code: {
+      type: DataTypes.STRING(2),
+      allowNull: true,
+    },
+    group_code: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+    },
+    image_bu: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    section: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    active_flag: {
+      type: DataTypes.CHAR(1),
+      allowNull: false,
+    },
+    color: {
       type: DataTypes.STRING(50),
       allowNull: true,
     },
@@ -65,14 +89,6 @@ const MASTER_BU = connectDBMasterSequelize.define(
     update_date: {
       type: DataTypes.DATE,
       allowNull: false,
-    },
-    active_flag: {
-      type: DataTypes.CHAR(1),
-      allowNull: false,
-    },
-    active_estock: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
     },
   },
   {
