@@ -44,7 +44,7 @@ export const getShoppingListController = async (req, res) => {
 
 export const stoctkoutAndroidWHSystem = async (req, res) => {
   try {
-    const { data, slip, ipAddress } = req.body;
+    const { data, slip, deviceName } = req.body;
 
     if (!data?.length) {
       throw new Error("Data is empty!");
@@ -67,7 +67,7 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
         FLAG: 0,
         FILENAME: item.processId || null,
         FLAGDX: 0,
-        IP_ADDRESS: ipAddress || null,
+        DEVICE_NAME: deviceName || null,
       };
     });
     // Bulk insert ke database
