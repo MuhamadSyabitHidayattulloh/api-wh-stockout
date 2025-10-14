@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { AuthService } from "../services/AuthService.js";
 
 export const authenticateToken = (req, res, next) => {
   try {

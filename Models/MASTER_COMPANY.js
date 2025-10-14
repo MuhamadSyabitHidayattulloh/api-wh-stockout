@@ -1,41 +1,58 @@
-// Models/MASTER_COMPANY.js
 import { DataTypes } from "sequelize";
 import { connectDBMasterSequelize } from "../Config/dbConnection.js";
 
 const MASTER_COMPANY = connectDBMasterSequelize.define(
-  "MASTER_COMPANY",
+  "master_company",
   {
+    uuid: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
     company_code: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.CHAR(1),
       allowNull: false,
       primaryKey: true,
     },
     company_name: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(50),
       allowNull: true,
     },
     company_name_as: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    created_date: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    updated_date: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING(5),
       allowNull: true,
     },
     active_flag: {
       type: DataTypes.CHAR(1),
       allowNull: true,
-      defaultValue: "Y",
+    },
+    create_by: {
+      type: DataTypes.CHAR(7),
+      allowNull: true,
+    },
+    create_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    update_by: {
+      type: DataTypes.CHAR(7),
+      allowNull: true,
+    },
+    update_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
   },
   {
     tableName: "master_company",
     schema: "dbo",
     timestamps: false,
+    indexes: [
+      {
+        name: "PK__master_c__F4E508EB1A94E3C4",
+        unique: true,
+        fields: [{ name: "company_code" }],
+      },
+    ],
   }
 );
 

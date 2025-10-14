@@ -1,29 +1,12 @@
-// Models/init-models.js
-import { DataTypes } from "sequelize";
-import _WH_T_FIFO from "./WH_T_FIFO.js";
-import _LS_T_LOT_FORM from "./LS_T_LOT_FORM.js";
-import _STOCKOUT_ERROR_LOG from "./STOCKOUT_ERROR_LOG.js";
-import _STOCKOUT_T_TRANSACTION from "./STOCKOUT_T_TRANSACTION.js";
-import _WH_T_TEMPORARY from "./WH_T_TEMPORARY.js";
-import _MASTER_LOGIN from "./MASTER_LOGIN.js";
+import _sequelize from "sequelize";
+const DataTypes = _sequelize.DataTypes;
+import _master_plant from  "./master_plant.js";
 
-function initModels(sequelize) {
-  const WH_T_FIFO = _WH_T_FIFO(sequelize, DataTypes);
-  const LS_T_LOT_FORM = _LS_T_LOT_FORM(sequelize, DataTypes);
-  const STOCKOUT_ERROR_LOG = _STOCKOUT_ERROR_LOG(sequelize, DataTypes);
-  const STOCKOUT_T_TRANSACTION = _STOCKOUT_T_TRANSACTION(sequelize, DataTypes);
-  const WH_T_TEMPORARY = _WH_T_TEMPORARY(sequelize, DataTypes);
-  const MASTER_LOGIN = _MASTER_LOGIN(sequelize, DataTypes);
+export default function initModels(sequelize) {
+  const master_plant = _master_plant.init(sequelize, DataTypes);
+
 
   return {
-    WH_T_FIFO,
-    LS_T_LOT_FORM,
-    STOCKOUT_ERROR_LOG,
-    STOCKOUT_T_TRANSACTION,
-    WH_T_TEMPORARY,
-    MASTER_LOGIN,
+    master_plant,
   };
 }
-
-export { initModels };
-export default initModels;

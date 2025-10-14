@@ -1,46 +1,62 @@
-// Models/MASTER_PLANT.js
 import { DataTypes } from "sequelize";
 import { connectDBMasterSequelize } from "../Config/dbConnection.js";
 
 const MASTER_PLANT = connectDBMasterSequelize.define(
-  "MASTER_PLANT",
+  "master_plant",
   {
-    id: {
-      autoIncrement: true,
-      type: DataTypes.INTEGER,
+    uuid: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    plant_code: {
+      type: DataTypes.CHAR(1),
       allowNull: false,
       primaryKey: true,
     },
-    plant_code: {
-      type: DataTypes.STRING(10),
+    plant_name_alias: {
+      type: DataTypes.STRING(5),
       allowNull: false,
     },
     plant_name: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    company_code: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.STRING(50),
       allowNull: false,
     },
-    created_date: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    updated_date: {
-      type: DataTypes.DATE,
-      allowNull: true,
+    company_code: {
+      type: DataTypes.CHAR(1),
+      allowNull: false,
     },
     active_flag: {
       type: DataTypes.CHAR(1),
-      allowNull: true,
-      defaultValue: "Y",
+      allowNull: false,
+    },
+    create_by: {
+      type: DataTypes.CHAR(7),
+      allowNull: false,
+    },
+    create_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    update_by: {
+      type: DataTypes.CHAR(7),
+      allowNull: false,
+    },
+    update_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
     },
   },
   {
     tableName: "master_plant",
     schema: "dbo",
     timestamps: false,
+    indexes: [
+      {
+        name: "PK__master_p__CCCD9BF38DF815D1",
+        unique: true,
+        fields: [{ name: "plant_code" }],
+      },
+    ],
   }
 );
 
