@@ -4,12 +4,8 @@ import { connectDBMasterSequelize } from "../Config/dbConnection.js";
 const MASTER_LOGIN = connectDBMasterSequelize.define(
   "master_login",
   {
-    uuid: {
-      type: DataTypes.UUID,
-      allowNull: false,
-    },
     username: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.CHAR(10),
       allowNull: false,
       primaryKey: true,
     },
@@ -21,23 +17,39 @@ const MASTER_LOGIN = connectDBMasterSequelize.define(
       type: DataTypes.STRING(500),
       allowNull: false,
     },
+    short_name: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    email: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+    },
     company_code: {
       type: DataTypes.CHAR(1),
       allowNull: false,
     },
     plant_code: {
-      type: DataTypes.STRING(5),
-      allowNull: true,
+      type: DataTypes.CHAR(5),
+      allowNull: false,
     },
     bu_code: {
-      type: DataTypes.STRING(5),
-      allowNull: true,
+      type: DataTypes.CHAR(10),
+      allowNull: false,
     },
-    asaichi_role: {
+    eprop_role: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    asaichi_last_login: {
+    eprop_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    empas_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    empas_last_login: {
       type: DataTypes.DATE,
       allowNull: true,
     },
@@ -46,6 +58,98 @@ const MASTER_LOGIN = connectDBMasterSequelize.define(
       allowNull: true,
     },
     empo_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    ecrem_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    ecrem_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    incek_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    incek_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    sopdx_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    sopdx_approve: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    sopdx_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    e_pm_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    e_pm_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    ekic_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    ekic_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    astendy_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    astendy_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    epds_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    epds_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    emgstck_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    emgstck_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    dconter_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    dconter_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    checksheet_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    checksheet_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    asaichi_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    asaichi_last_login: {
       type: DataTypes.DATE,
       allowNull: true,
     },
@@ -65,67 +169,19 @@ const MASTER_LOGIN = connectDBMasterSequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    tstock_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    tstock_last_login: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     ssdx_role: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
     ssdx_last_login: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    ditrac_role: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    ditrac_last_login: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    checksheet_role: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    checksheet_last_login: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    dx_vero_role: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    dx_vero_last_login: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    dx_csi_role: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    dx_csi_last_login: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    dx_dota_role: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    dx_dota_last_login: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    DX_MYMEET_ROLE: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    DX_MYMEET_LAST_LOGIN: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    DX_EGAN_ROLE: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    DX_EGAN_LAST_LOGIN: {
       type: DataTypes.DATE,
       allowNull: true,
     },
@@ -135,6 +191,30 @@ const MASTER_LOGIN = connectDBMasterSequelize.define(
     },
     warehouse_last_login: {
       type: DataTypes.DATE,
+      allowNull: true,
+    },
+    dx_vero_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    line_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    active: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    ip_add: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    leader: {
+      type: DataTypes.CHAR(10),
+      allowNull: true,
+    },
+    image: {
+      type: DataTypes.STRING(500),
       allowNull: true,
     },
     DX_MOSFET_ROLE: {
@@ -153,11 +233,15 @@ const MASTER_LOGIN = connectDBMasterSequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    misuzumashi_surfers_role: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     mizusumashi_surfers_role: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    mizusumashi_surfers_last_login: {
+    misuzumashi_surfers_last_login: {
       type: DataTypes.DATE,
       allowNull: true,
     },
@@ -169,20 +253,16 @@ const MASTER_LOGIN = connectDBMasterSequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    session_token: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
     selfinotify_role: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
     selfinotify_last_login: {
       type: DataTypes.DATE,
-      allowNull: true,
-    },
-    session_token: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    image: {
-      type: DataTypes.STRING(500),
       allowNull: true,
     },
     create_by: {
@@ -201,12 +281,8 @@ const MASTER_LOGIN = connectDBMasterSequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
-    dx_she_patrol_role: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    dx_she_patrol_last_login: {
-      type: DataTypes.DATE,
+    active_flag: {
+      type: DataTypes.CHAR(10),
       allowNull: true,
     },
   },
@@ -216,7 +292,7 @@ const MASTER_LOGIN = connectDBMasterSequelize.define(
     timestamps: false,
     indexes: [
       {
-        name: "PK_master_login",
+        name: "PK__master_l__F3DBC5734E4E056C",
         unique: true,
         fields: [{ name: "username" }],
       },
