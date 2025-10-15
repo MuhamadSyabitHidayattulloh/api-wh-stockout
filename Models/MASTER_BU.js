@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
-import { connectDBWarehouseSequelize } from "../Config/dbConnection.js";
+import { connectDBMasterSequelize } from "../Config/dbConnection.js";
 
-const MASTER_BU = connectDBWarehouseSequelize.define(
+const MASTER_BU = connectDBMasterSequelize.define(
   "master_bu",
   {
     bu_code: {

@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
-import { connectDBWarehouseSequelize } from "../Config/dbConnection.js";
+import { connectDBMasterSequelize } from "../Config/dbConnection.js";
 
-const MASTER_COMPANY = connectDBWarehouseSequelize.define(
+const MASTER_COMPANY = connectDBMasterSequelize.define(
   "master_company",
   {
     company_code: {

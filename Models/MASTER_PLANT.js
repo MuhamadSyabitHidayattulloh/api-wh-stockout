@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
-import { connectDBWarehouseSequelize } from "../Config/dbConnection.js";
+import { connectDBMasterSequelize } from "../Config/dbConnection.js";
 
-const MASTER_PLANT = connectDBWarehouseSequelize.define(
+const MASTER_PLANT = connectDBMasterSequelize.define(
   "master_plant",
   {
     plant_code: {
