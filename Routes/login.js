@@ -38,14 +38,14 @@ const handleValidationErrors = (req, res, next) => {
  *           schema:
  *             type: object
  *             required:
- *               - userID
- *               - password
+ *               - USERNAME
+ *               - PASSWORD
  *             properties:
- *               userID:
+ *               USERNAME:
  *                 type: string
  *                 description: User ID
  *                 example: "USER001"
- *               password:
+ *               PASSWORD:
  *                 type: string
  *                 description: Password
  *                 example: "password123"
@@ -157,11 +157,7 @@ router.post("/Stockout/validateToken", authenticateToken, validateToken);
  *       401:
  *         description: Unauthorized
  */
-router.post(
-  "/Stockout/changePassword",
-  authenticateToken,
-  changePassword
-);
+router.post("/Stockout/changePassword", authenticateToken, changePassword);
 
 /**
  * @swagger

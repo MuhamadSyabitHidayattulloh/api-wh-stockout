@@ -1,5 +1,5 @@
 // services/WarehouseService.js - Complete replacement for warehouse.js
-import LS_T_REPORT_MOBILE from "../Models/LS_T_REPORT_MOBILE.js";
+import LS_T_REPORT_MOBILE_1 from "../Models/LS_T_REPORT_MOBILE_1.js";
 import WH_M_PART_LOC from "../Models/WH_M_PART_LOC.js";
 import WH_M_PARTNO from "../Models/WH_M_PARTNO.js";
 import M_PART_CATEGORY from "../Models/M_PART_CATEGORY.js";
@@ -8,7 +8,7 @@ import DTD2_SEPARATION from "../Models/DTD2_SEPARATION.js";
 import STORAGE_T_LOG from "../Models/STORAGE_T_LOG.js";
 import LS_T_LOT_FORM from "../Models/LS_T_LOT_FORM.js";
 import WH_T_TEMPORARY from "../Models/WH_T_TEMPORARY.js";
-import STOCKOUT_T_TRANSACTION from "../Models/STOCKOUT_T_TRANSACTION.js";
+import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
 import { Op } from "sequelize";
 
 export class WarehouseService {
@@ -34,7 +34,7 @@ export class WarehouseService {
         wh_code: item.wh_code,
       }));
 
-      await LS_T_REPORT_MOBILE.bulkCreate(result);
+      await LS_T_REPORT_MOBILE_1.bulkCreate(result);
 
       console.log(`✅ Inserted ${result.length} records`);
       return result;
@@ -304,7 +304,7 @@ export class WarehouseService {
   // Check data stockout
   static async checkDataStockout(data) {
     try {
-      const result = await LS_T_REPORT_MOBILE.findOne({
+      const result = await LS_T_REPORT_MOBILE_1.findOne({
         where: { idbox_no: data },
         attributes: ["idbox_no"],
       });
@@ -319,7 +319,7 @@ export class WarehouseService {
   // Check data stockout misuzumashi
   static async checkDataStockoutMisuzumashi(data) {
     try {
-      const result = await LS_T_REPORT_MOBILE.findOne({
+      const result = await LS_T_REPORT_MOBILE_1.findOne({
         where: { idbox_no: data },
         attributes: ["idbox_no"],
       });
@@ -352,7 +352,7 @@ export class WarehouseService {
   // Get last data stockout
   static async getLastDataStockOut() {
     try {
-      const result = await STOCKOUT_T_TRANSACTION.findOne({
+      const result = await STOCKOUT_T_TRANSACTION_2.findOne({
         attributes: ["SLIP", "FILENAME"],
         order: [
           ["TGL", "DESC"],
@@ -389,7 +389,7 @@ export class WarehouseService {
         wh_code: item.wh_code,
       }));
 
-      const submit = await LS_T_REPORT_MOBILE.bulkCreate(result);
+      const submit = await LS_T_REPORT_MOBILE_1.bulkCreate(result);
       console.log(`✅ Inserted ${result.length} misuzumashi records`);
       return submit;
     } catch (error) {

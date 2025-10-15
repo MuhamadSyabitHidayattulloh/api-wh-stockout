@@ -1,8 +1,8 @@
-import express from 'express';
+import express from "express";
 import {
   getPartCategoryShopping,
   stoctkoutAndroidWHSystem,
-} from '../Controller/warehouse.js';
+} from "../Controller/warehouse.js";
 
 const router = express.Router();
 
@@ -19,8 +19,8 @@ const router = express.Router();
  *           text/plain:
  *             example: "PE DEVELOPMENT 2024"
  */
-router.get('/testRoute', (req, res) => {
-  res.send('PE DEVELOPMENT 2024');
+router.get("/testRoute", (req, res) => {
+  res.send("PE DEVELOPMENT 2024");
 });
 
 /**
@@ -48,7 +48,7 @@ router.get('/testRoute', (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.post('/getCategoryPart', getPartCategoryShopping);
+router.post("/getCategoryPart", getPartCategoryShopping);
 
 /**
  * @swagger
@@ -97,6 +97,6 @@ router.post('/getCategoryPart', getPartCategoryShopping);
  *       500:
  *         description: Internal server error
  */
-router.post('/stockoutAndroid', stoctkoutAndroidWHSystem);
+router.post("/stockoutAndroidRunning", stoctkoutAndroidWHSystem);
 
 export default router;

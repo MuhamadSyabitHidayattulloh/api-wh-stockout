@@ -1,8 +1,8 @@
 import { DataTypes } from "sequelize";
 import { connectDBWarehouseSequelize } from "../Config/dbConnection.js";
 
-const STOCKOUT_T_TRANSACTION = connectDBWarehouseSequelize.define(
-  "STOCKOUT_T_TRANSACTION",
+const STOCKOUT_T_TRANSACTION_2 = connectDBWarehouseSequelize.define(
+  "STOCKOUT_T_TRANSACTION_2",
   {
     SLIP: {
       type: DataTypes.STRING(10),
@@ -64,10 +64,10 @@ const STOCKOUT_T_TRANSACTION = connectDBWarehouseSequelize.define(
     },
   },
   {
-    tableName: "STOCKOUT_T_TRANSACTION",
+    tableName: "STOCKOUT_T_TRANSACTION_2",
     schema: "dbo",
     timestamps: false,
   }
 );
 
-export default STOCKOUT_T_TRANSACTION;
+export default STOCKOUT_T_TRANSACTION_2;
