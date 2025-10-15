@@ -165,18 +165,18 @@ export const registerNew = async (req, res) => {
       buCode,
     };
 
-    // Validate registration data
-    const validation = await RegistrationService.validateRegistrationData(
-      userData
-    );
+    // // Validate registration data
+    // const validation = await RegistrationService.validateRegistrationData(
+    //   userData
+    // );
 
-    if (!validation.isValid) {
-      return res.status(400).json({
-        msg: "Validation failed",
-        status: "validationError",
-        errors: validation.errors,
-      });
-    }
+    // if (!validation.isValid) {
+    //   return res.status(400).json({
+    //     msg: "Validation failed",
+    //     status: "validationError",
+    //     errors: validation.errors,
+    //   });
+    // }
     // Register new user
     const result = await RegistrationService.registerNewUser(userData);
 

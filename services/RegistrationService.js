@@ -215,7 +215,7 @@ export class RegistrationService {
       errors.push("Name must be at least 2 characters");
     }
 
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (email && !validator.isEmail(email)) {
       errors.push("Invalid email format");
     }
 
