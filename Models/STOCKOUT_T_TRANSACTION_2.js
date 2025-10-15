@@ -58,6 +58,10 @@ const STOCKOUT_T_TRANSACTION_2 = connectDBWarehouseSequelize.define(
       allowNull: true,
       defaultValue: 0,
     },
+    IP_ADDRESS: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
     DEVICE_NAME: {
       type: DataTypes.STRING(50),
       allowNull: true,
