@@ -1,24 +1,20 @@
 import { DataTypes } from "sequelize";
-import { connectDBMasterSequelize } from "../Config/dbConnection.js";
+import { connectDBWarehouseSequelize } from "../Config/dbConnection.js";
 
-const MASTER_PLANT = connectDBMasterSequelize.define(
+const MASTER_PLANT = connectDBWarehouseSequelize.define(
   "master_plant",
   {
-    uuid: {
-      type: DataTypes.UUID,
-      allowNull: false,
-    },
     plant_code: {
-      type: DataTypes.CHAR(1),
+      type: DataTypes.STRING(3),
       allowNull: false,
       primaryKey: true,
     },
     plant_name_alias: {
-      type: DataTypes.STRING(5),
+      type: DataTypes.CHAR(5),
       allowNull: false,
     },
     plant_name: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.CHAR(50),
       allowNull: false,
     },
     company_code: {
@@ -52,7 +48,7 @@ const MASTER_PLANT = connectDBMasterSequelize.define(
     timestamps: false,
     indexes: [
       {
-        name: "PK__master_p__CCCD9BF38DF815D1",
+        name: "PK__master_p__CCCD9BF307EE3FB5",
         unique: true,
         fields: [{ name: "plant_code" }],
       },
