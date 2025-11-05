@@ -97,6 +97,6 @@ router.post("/getCategoryPart", getPartCategoryShopping);
  *       500:
  *         description: Internal server error
  */
-router.post("/stockoutAndroid", stoctkoutAndroidWHSystem);
+router.post("/stockoutAndroidNewVersion", stoctkoutAndroidWHSystem);
 
 export default router;
