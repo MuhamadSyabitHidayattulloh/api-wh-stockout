@@ -1,6 +1,6 @@
 import express from "express";
 import { createBullBoard } from "@bull-board/api";
-import { BullAdapter } from "@bull-board/api/bullAdapter.js";
+import { BullAdapter } from "@bull-board/api/bullAdapter";
 import { ExpressAdapter } from "@bull-board/express";
 import stockoutQueue from "../queues/stockoutProcessor.js";
 
@@ -9,6 +9,8 @@ const app = express();
 
 // Setup Bull Board
 const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath("/admin/queues");
+
 const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
   queues: [new BullAdapter(stockoutQueue)],
   serverAdapter: serverAdapter,
@@ -31,7 +33,7 @@ const basicAuth = (req, res, next) => {
   next();
 };
 
-// Gunakan basic auth
+// Gunakan basic auth dan serve Bull Board
 app.use("/admin/queues", basicAuth, serverAdapter.getRouter());
 
 // Error handling
