@@ -12,11 +12,14 @@
     "test:ci": "cross-env NODE_OPTIONS=test jest --coverage --passWithNoTests --watchAll=false --ci",
     "test:watch": "cross-env NODE_OPTIONS=test jest --watch",
     "test:simple": "cross-env NODE_OPTIONS=test jest tests/simple.test.js",
-    "start:monitor": "node monitoring/app.js"
+    "start:monitor": "node monitoring/app.js",
+    "redis:check": "node checkRedis.js"
   },
   "dependencies": {
     "@babel/core": "^7.24.7",
     "@babel/node": "^7.24.7",
+    "@bull-board/api": "^6.14.2",
+    "@bull-board/express": "^6.14.2",
     "@jest/globals": "^29.7.0",
     "babel-jest": "^29.7.0",
     "bull": "^4.16.3",
