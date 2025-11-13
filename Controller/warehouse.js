@@ -70,14 +70,18 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
         DEVICE_NAME: deviceName || null,
       };
     });
+
+    // stockoutQueue.add({
+    //   data: data,
+    //   NPK: data[0].NPK,
+    //   timeScan: data[0].timeScan,
+    // }).catch((error) => {
+    //   console.error("Redis failed: ", error)
+    // })
+
     // Bulk insert ke database
     await STOCKOUT_T_TRANSACTION_2.bulkCreate(bulkData, { returning: false });
 
-    await stockoutQueue.add({
-      data: data,
-      NPK: data[0].NPK,
-      timeScan: data[0].timeScan,
-    });
 
     res.status(200).json({
       msg: "Stockout Success",
