@@ -64,20 +64,38 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
         SQ: oneWayKanban.getUniqueCode(),
         TGL: formattedDate,
         JAM: formattedTime,
-        FLAG: 0,
+        FLAG: 3,
         FILENAME: item.processId || null,
         FLAGDX: 0,
         DEVICE_NAME: deviceName || null,
       };
     });
-    // Bulk insert ke database
+
+    // Bulk insert ke database (MAIN PROCESS)
     await STOCKOUT_T_TRANSACTION_2.bulkCreate(bulkData, { returning: false });
 
-    await stockoutQueue.add({
-      data: data,
-      NPK: data[0].NPK,
-      timeScan: data[0].timeScan,
-    });
+    // Setelah bulkCreate sukses, jalankan Redis queue secara fire-and-forget
+    // Error pada Redis tidak akan mempengaruhi response
+    const BATCH_SIZE = 25;
+    const totalBatches = Math.ceil(data.length / BATCH_SIZE);
+
+    for (let index = 0; index < data.length; index += BATCH_SIZE) {
+      const batchData = data.slice(index, index + BATCH_SIZE);
+      const batchNumber = Math.floor(index / BATCH_SIZE);
+
+      stockoutQueue
+        .add({
+          data: batchData,
+          NPK: batchData[0].NPK,
+          timeScan: batchData[0].timeScan,
+          batchNumber: batchNumber,
+          totalBatches: totalBatches,
+          batchSize: batchData.length,
+        })
+        .catch((error) => {
+          console.error("Redis queue error (non-blocking):", error);
+        });
+    }
 
     res.status(200).json({
       msg: "Stockout Success",

@@ -43,15 +43,7 @@ stockoutQueue.process(async (job) => {
 
     await job.progress(75);
 
-    try {
-      await WarehouseService.stockOutWithoutInstruction(processedData);
-    } catch (error) {
-      console.error(
-        `❌ Batch ${batchNumber}/${totalBatches} gagal:`,
-        error.message
-      );
-      throw error;
-    }
+    await WarehouseService.stockOutWithoutInstruction(processedData);
 
     // Update FLAGDX
     await StockoutService.updateFlagDX(NPK, timeScan);
@@ -88,18 +80,41 @@ stockoutQueue.process(async (job) => {
       failedLotData,
     };
   } catch (error) {
-    console.error(`Job processing error in batch ${batchNumber}:`, error);
+    console.error(
+      `❌ Job processing error in batch ${batchNumber}/${totalBatches}:`,
+      error
+    );
 
-    await STOCKOUT_ERROR_LOG.create({
-      NPK: NPK,
-      ERROR_DATE: literal("GETDATE()"),
-      ERROR_TYPE: "BATCH_PROCESSING_ERROR",
-      ERROR_MESSAGE: `Batch ${batchNumber} error: ${error.message}`,
-      RAW_DATA: JSON.stringify(data),
-      STATUS: "PENDING",
-      CREATED_AT: literal("GETDATE()"),
-    });
-    throw error;
+    try {
+      // Log error ke database
+      await STOCKOUT_ERROR_LOG.create({
+        NPK: NPK,
+        ERROR_DATE: literal("GETDATE()"),
+        ERROR_TYPE: "BATCH_PROCESSING_ERROR",
+        ERROR_MESSAGE: `Batch ${batchNumber}/${totalBatches} error: ${error.message}`,
+        RAW_DATA: JSON.stringify(data),
+        STATUS: "PENDING",
+        CREATED_AT: literal("GETDATE()"),
+      });
+
+      // ✅ Hapus job dari Redis setelah berhasil log ke database
+      // Data sudah aman di database, tidak perlu di Redis lagi
+      await job.remove();
+      console.log(
+        `🗑️ Job ${job.id} removed from Redis after logging error to DB`
+      );
+
+      // ✅ Log berhasil, error sudah di-handle, JANGAN throw error
+      // Job dianggap "handled" meskipun gagal proses
+      return;
+    } catch (logError) {
+      console.error(
+        "⚠️ Failed to log error to database, keeping job in Redis:",
+        logError
+      );
+      // Jika logging gagal, throw error untuk trigger retry
+      throw error;
+    }
   }
 });
 
@@ -108,8 +123,20 @@ stockoutQueue.on("completed", (job, result) => {
   console.log(`Job ${job.id} completed with result:`, result);
 });
 
-stockoutQueue.on("failed", (job, error) => {
+stockoutQueue.on("failed", async (job, error) => {
   console.error(`Job ${job.id} failed with error:`, error);
+
+  // Jika sudah exhaust semua attempts (3x), hapus dari Redis
+  if (job.attemptsMade >= job.opts.attempts) {
+    console.log(
+      `🗑️ Job ${job.id} exhausted all ${job.opts.attempts} attempts, removing from Redis`
+    );
+    try {
+      await job.remove();
+    } catch (removeError) {
+      console.error(`Failed to remove job ${job.id}:`, removeError);
+    }
+  }
 });
 
 stockoutQueue.on("progress", (job, progress) => {
