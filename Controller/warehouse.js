@@ -1,6 +1,6 @@
 import moment from "moment";
 import { OneWayKanbanProcessed } from "../functions/OneWayKanbanProcessed.js";
-import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
+import STOCKOUT_T_TRANSACTION from "../Models/STOCKOUT_T_TRANSACTION.js";
 import stockoutQueue from "../queues/stockoutProcessor.js";
 import { WarehouseService } from "../services/warehouseService.js";
 
@@ -72,7 +72,7 @@ export const stoctkoutAndroidWHSystem = async (req, res) => {
     });
 
     // Bulk insert ke database (MAIN PROCESS)
-    await STOCKOUT_T_TRANSACTION_2.bulkCreate(bulkData, { returning: false });
+    await STOCKOUT_T_TRANSACTION.bulkCreate(bulkData, { returning: false });
 
     // Setelah bulkCreate sukses, jalankan Redis queue secara fire-and-forget
     // Error pada Redis tidak akan mempengaruhi response

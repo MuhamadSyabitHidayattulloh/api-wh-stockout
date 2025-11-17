@@ -8,7 +8,7 @@ import DTD2_SEPARATION from "../Models/DTD2_SEPARATION.js";
 import STORAGE_T_LOG from "../Models/STORAGE_T_LOG.js";
 import LS_T_LOT_FORM from "../Models/LS_T_LOT_FORM.js";
 import WH_T_TEMPORARY from "../Models/WH_T_TEMPORARY.js";
-import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
+import STOCKOUT_T_TRANSACTION from "../Models/STOCKOUT_T_TRANSACTION.js";
 import { Op } from "sequelize";
 
 export class WarehouseService {
@@ -352,7 +352,7 @@ export class WarehouseService {
   // Get last data stockout
   static async getLastDataStockOut() {
     try {
-      const result = await STOCKOUT_T_TRANSACTION_2.findOne({
+      const result = await STOCKOUT_T_TRANSACTION.findOne({
         attributes: ["SLIP", "FILENAME"],
         order: [
           ["TGL", "DESC"],

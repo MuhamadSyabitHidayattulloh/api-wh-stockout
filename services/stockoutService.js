@@ -1,7 +1,7 @@
 // services/StockoutService.js - Fixed import path
 import { literal, Op } from "sequelize";
 import LS_T_LOT_FORM from "../Models/LS_T_LOT_FORM.js";
-import STOCKOUT_T_TRANSACTION_2 from "../Models/STOCKOUT_T_TRANSACTION_2.js";
+import STOCKOUT_T_TRANSACTION from "../Models/STOCKOUT_T_TRANSACTION.js";
 import { WarehouseService } from "./warehouseService.js"; // Fixed casing
 import moment from "moment";
 import WH_T_TEMPORARY from "../Models/WH_T_TEMPORARY.js";
@@ -90,7 +90,7 @@ export class StockoutService {
   }
 
   static async updateFlagDX(NPK, timeScan) {
-    await STOCKOUT_T_TRANSACTION_2.update(
+    await STOCKOUT_T_TRANSACTION.update(
       { FLAGDX: 1 },
       {
         where: {

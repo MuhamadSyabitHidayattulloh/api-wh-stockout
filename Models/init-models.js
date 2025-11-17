@@ -1,12 +1,12 @@
 import _sequelize from "sequelize";
 const DataTypes = _sequelize.DataTypes;
-import _master_login from  "./master_login.js";
+import _STOCKOUT_T_TRANSACTION from  "./STOCKOUT_T_TRANSACTION.js";
 
 export default function initModels(sequelize) {
-  const master_login = _master_login.init(sequelize, DataTypes);
+  const STOCKOUT_T_TRANSACTION = _STOCKOUT_T_TRANSACTION.init(sequelize, DataTypes);
 
 
   return {
-    master_login,
+    STOCKOUT_T_TRANSACTION,
   };
 }
