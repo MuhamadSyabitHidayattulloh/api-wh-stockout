@@ -2,7 +2,10 @@
 import { literal, Op } from "sequelize";
 import LS_T_LOT_FORM from "../Models/LS_T_LOT_FORM.js";
 import STOCKOUT_T_TRANSACTION from "../Models/STOCKOUT_T_TRANSACTION.js";
-import { WarehouseService } from "./warehouseService.js"; // Fixed casing
+import IWTR_T_ORDER from "../Models/IWTR_T_ORDER.js";
+import { WarehouseService } from "./warehouseService.js";
+import { AggregationService } from "./AggregationService.js";
+import { WaitingLotFormService } from "./WaitingLotFormService.js";
 import moment from "moment";
 import WH_T_TEMPORARY from "../Models/WH_T_TEMPORARY.js";
 import WH_T_FIFO from "../Models/WH_T_FIFO.js";
@@ -27,9 +30,8 @@ export class StockoutService {
         // Use WarehouseService methods
         const partLoc = await WarehouseService.getLocationPart(partno);
         const partLineId = await WarehouseService.getLineIdPart(partno);
-        const lotSizeData = await WarehouseService.getDataMasterLotSizing(
-          partno
-        );
+        const lotSizeData =
+          await WarehouseService.getDataMasterLotSizing(partno);
         const whCode = qrKanban.getWhCode();
 
         processedData.push({
@@ -98,7 +100,7 @@ export class StockoutService {
           TGL: moment(timeScan).format("YYYY-MM-DD"),
           FLAGDX: 0,
         },
-      }
+      },
     );
   }
 
@@ -140,7 +142,12 @@ export class StockoutService {
                   where: {
                     id: currentDataLotForm.id,
                   },
-                }
+                },
+              );
+
+              await this.updateOrderStatusAndTriggerAggregation(
+                item.partno,
+                item.create_date,
               );
             } else {
               await LS_T_LOT_FORM.update(
@@ -153,7 +160,7 @@ export class StockoutService {
                   where: {
                     id: currentDataLotForm.id,
                   },
-                }
+                },
               );
             }
           } else if (item.kbn_std == 1) {
@@ -169,6 +176,11 @@ export class StockoutService {
               wh_code: item.wh_code,
               status: 1,
             });
+
+            await this.updateOrderStatusAndTriggerAggregation(
+              item.partno,
+              item.create_date,
+            );
           } else {
             await LS_T_LOT_FORM.create({
               partno: item.partno,
@@ -186,8 +198,51 @@ export class StockoutService {
           console.log("ada error saat proses lot form: ", error);
         }
       }
+
+      await WaitingLotFormService.updateAndBroadcastWaitingLotForm();
     } catch (error) {
       console.log("ada error saat proses lot looping: ", error);
+    }
+  }
+
+  static async updateOrderStatusAndTriggerAggregation(partno, timeScan) {
+    try {
+      const wib = moment(timeScan).utcOffset("+07:00");
+      const formattedDate = wib.format("YYYYMMDD");
+
+      const ordersToUpdate = await IWTR_T_ORDER.findAll({
+        where: {
+          PARTNO: partno,
+          REQUEST_DATE: formattedDate,
+          [Op.or]: [{ STATUS: null }, { STATUS: { [Op.ne]: "C" } }],
+        },
+        attributes: ["REQUEST_NO", "LINE_NO"],
+        raw: true,
+      });
+
+      if (ordersToUpdate.length > 0) {
+        await IWTR_T_ORDER.update(
+          { STATUS: "P" },
+          {
+            where: {
+              PARTNO: partno,
+              REQUEST_DATE: formattedDate,
+              [Op.or]: [{ STATUS: null }, { STATUS: { [Op.ne]: "C" } }],
+            },
+          },
+        );
+
+        console.log(
+          `Updated ${ordersToUpdate.length} order(s) to status 'P' for partno: ${partno}`,
+        );
+
+        await AggregationService.updateCycleChartData();
+      }
+    } catch (error) {
+      console.error(
+        "Error updating order status and triggering aggregation:",
+        error,
+      );
     }
   }
 
@@ -243,7 +298,7 @@ export class StockoutService {
 
             const diffHours = moment(processedTime).diff(
               moment(oldTime),
-              "hours"
+              "hours",
             );
 
             if (diffHours > 24) {
@@ -256,8 +311,8 @@ export class StockoutService {
                 store_location: processedData.store_location,
                 storage_date: literal(
                   `CONVERT(DATETIME, '${moment(
-                    processedData.create_date
-                  ).format("YYYY-MM-DD HH:mm:ss")}')`
+                    processedData.create_date,
+                  ).format("YYYY-MM-DD HH:mm:ss")}')`,
                 ),
                 create_by: NPK,
                 create_date: literal("GETDATE()"),
@@ -265,7 +320,7 @@ export class StockoutService {
             }
           } else {
             console.log(
-              `Skip FIFO check - No data found for imgdata: ${imgData}`
+              `Skip FIFO check - No data found for imgdata: ${imgData}`,
             );
           }
         } catch (error) {

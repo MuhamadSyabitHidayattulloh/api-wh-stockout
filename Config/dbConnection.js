@@ -24,7 +24,7 @@ export const connectDBMasterSequelize = new Sequelize(
         trustServerCertificate: true,
       },
     },
-  }
+  },
 );
 
 export const connectDBWarehouseSequelize = new Sequelize(
@@ -49,7 +49,7 @@ export const connectDBWarehouseSequelize = new Sequelize(
         timeZone: "+00:00",
       },
     },
-  }
+  },
 );
 
 export const connectDBStoragingSequelize = new Sequelize(
@@ -72,5 +72,28 @@ export const connectDBStoragingSequelize = new Sequelize(
         trustServerCertificate: true,
       },
     },
-  }
+  },
+);
+
+export const connectDBIWTRSequelize = new Sequelize(
+  process.env.DB_IWTR_NAME || "IWTR_DB",
+  process.env.DB_IWTR_USERNAME,
+  process.env.DB_IWTR_PASSWORD,
+  {
+    host: process.env.DB_IWTR_SERVER,
+    dialect: "mssql",
+    logging: false,
+    pool: {
+      max: 100,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
+    dialectOptions: {
+      options: {
+        encrypt: true,
+        trustServerCertificate: true,
+      },
+    },
+  },
 );
