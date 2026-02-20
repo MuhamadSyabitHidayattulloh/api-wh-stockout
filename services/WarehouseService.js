@@ -309,7 +309,7 @@ export class WarehouseService {
         attributes: ["idbox_no"],
       });
 
-      return result ? true : false;
+      return !!result;
     } catch (error) {
       console.error("Error checkDataStockout", error);
       throw error;
@@ -324,7 +324,7 @@ export class WarehouseService {
         attributes: ["idbox_no"],
       });
 
-      return result ? true : false;
+      return !!result;
     } catch (error) {
       console.error("Error checkDataStockoutMisuzumashi", error);
       throw error;

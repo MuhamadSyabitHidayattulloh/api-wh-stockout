@@ -5,7 +5,7 @@ export const authenticateToken = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return res.status(401).json({
         error: "Access token required",
         msg: "Token akses diperlukan",

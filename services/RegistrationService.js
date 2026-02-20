@@ -107,6 +107,23 @@ export class RegistrationService {
     }
   }
 
+  static async validateBuCode(company, plant, buCode) {
+    if (!company) return "Company is required to validate BU code";
+    if (!plant) return "Plant is required to validate BU code";
+
+    const buRecord = await MASTER_BU.findOne({
+      where: {
+        company_code: company,
+        plant_code: plant,
+        bu_code: buCode,
+        active_flag: "A",
+      },
+    });
+
+    if (!buRecord) return "Invalid BU code for the selected company and plant";
+    return null;
+  }
+
   static async registerNewUser(userData) {
     try {
       const { userID, password, name, email, company, plant, buCode } =
@@ -225,6 +242,11 @@ export class RegistrationService {
 
     if (!plant) {
       errors.push("Plant is required");
+    }
+    // Validate BU code if provided (delegated to helper to reduce nesting)
+    if (buCode) {
+      const buError = await this.validateBuCode(company, plant, buCode);
+      if (buError) errors.push(buError);
     }
 
     // Check if username already exists
