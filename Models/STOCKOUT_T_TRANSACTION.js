@@ -1,75 +1,92 @@
-import { DataTypes } from "sequelize";
-import { connectDBWarehouseSequelize } from "../Config/dbConnection.js";
+import { DataTypes } from 'sequelize';
+import { connectDBWarehouseSequelize } from '../Config/dbConnection.js';
 
 const STOCKOUT_T_TRANSACTION = connectDBWarehouseSequelize.define(
-  "STOCKOUT_T_TRANSACTION",
-  {
+  "STOCKOUT_T_TRANSACTION",{
     SLIP: {
       type: DataTypes.STRING(10),
-      allowNull: true,
+      allowNull: false,
+      primaryKey: true
     },
     NPK: {
       type: DataTypes.STRING(7),
-      allowNull: true,
+      allowNull: true
     },
     SERIAL: {
       type: DataTypes.STRING(6),
-      allowNull: true,
+      allowNull: true
     },
     PARTNO: {
       type: DataTypes.STRING(15),
-      allowNull: true,
+      allowNull: false,
+      primaryKey: true
     },
     QTY: {
       type: DataTypes.STRING(7),
-      allowNull: true,
+      allowNull: true
     },
     WH: {
       type: DataTypes.STRING(1),
-      allowNull: true,
+      allowNull: false,
+      primaryKey: true
     },
     SQ: {
       type: DataTypes.STRING(20),
-      allowNull: true,
+      allowNull: false,
+      primaryKey: true
     },
     TGL: {
       type: DataTypes.STRING(10),
-      allowNull: true,
+      allowNull: false,
+      primaryKey: true
     },
     JAM: {
       type: DataTypes.STRING(8),
-      allowNull: true,
+      allowNull: false,
+      primaryKey: true
     },
     FLAG: {
       type: DataTypes.STRING(1),
-      allowNull: true,
+      allowNull: true
     },
     FILENAME: {
       type: DataTypes.STRING(20),
-      allowNull: false,
+      allowNull: false
     },
     NEWSLIP: {
       type: DataTypes.STRING(10),
-      allowNull: true,
+      allowNull: true
     },
     FLAGDX: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: true
     },
     IP_ADDRESS: {
       type: DataTypes.STRING(15),
-      allowNull: true,
+      allowNull: true
     },
     DEVICE_NAME: {
       type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-  },
-  {
-    tableName: "STOCKOUT_T_TRANSACTION",
-    schema: "dbo",
+      allowNull: true
+    }
+  }, {
+    tableName: 'STOCKOUT_T_TRANSACTION',
+    schema: 'dbo',
     timestamps: false,
-  }
-);
+    indexes: [
+      {
+        name: "PK_STOCKOUT_T_TRANSACTION",
+        unique: true,
+        fields: [
+          { name: "SLIP" },
+          { name: "PARTNO" },
+          { name: "WH" },
+          { name: "SQ" },
+          { name: "TGL" },
+          { name: "JAM" },
+        ]
+      },
+    ]
+  })
 
-export default STOCKOUT_T_TRANSACTION;
+  export default STOCKOUT_T_TRANSACTION
