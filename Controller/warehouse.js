@@ -2,7 +2,7 @@ import moment from "moment";
 import { OneWayKanbanProcessed } from "../functions/OneWayKanbanProcessed.js";
 import STOCKOUT_T_TRANSACTION from "../Models/STOCKOUT_T_TRANSACTION.js";
 import stockoutQueue from "../queues/stockoutProcessor.js";
-import { WarehouseService } from "../services/warehouseService.js";
+import { WarehouseService } from "../services/WarehouseService.js";
 
 export const getPartCategoryShopping = async (req, res) => {
   try {

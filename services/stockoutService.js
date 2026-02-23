@@ -1,9 +1,11 @@
 // services/StockoutService.js - Fixed import path
-import { literal, Op } from "sequelize";
+import { literal, Op, Transaction } from "sequelize";
 import LS_T_LOT_FORM from "../Models/LS_T_LOT_FORM.js";
 import STOCKOUT_T_TRANSACTION from "../Models/STOCKOUT_T_TRANSACTION.js";
 import IWTR_T_ORDER from "../Models/IWTR_T_ORDER.js";
-import { WarehouseService } from "./warehouseService.js";
+import WH_M_PARTNO from "../Models/WH_M_PARTNO.js";
+import WH_M_CYCLE from "../Models/WH_M_CYCLE.js";
+import { WarehouseService } from "./WarehouseService.js";
 import { AggregationService } from "./AggregationService.js";
 import { WaitingLotFormService } from "./WaitingLotFormService.js";
 import moment from "moment";
@@ -12,6 +14,100 @@ import WH_T_FIFO from "../Models/WH_T_FIFO.js";
 import { OneWayKanbanProcessed } from "../functions/OneWayKanbanProcessed.js";
 
 export class StockoutService {
+  static async generateRequestNo() {
+    const wib = moment().utcOffset("+07:00");
+    const datePart = wib.format("YYYYMMDD");
+    const timePart =
+      wib.format("HHmmss") +
+      Math.floor(wib.millisecond() / 10)
+        .toString()
+        .padStart(2, "0");
+    return `R23${datePart}${timePart}T`;
+  }
+
+  static async createIWTROrder(
+    lotFormId,
+    partno,
+    createBy,
+    createDate,
+    transaction = null,
+  ) {
+    try {
+      const partMaster = await WH_M_PARTNO.findOne({
+        where: { partno: partno },
+        attributes: [
+          "partno",
+          "part_name",
+          "std_lot_form",
+          "qty_after_ls",
+          "class_id",
+          "type_id",
+          "measure_id",
+          "wh_location",
+          "qty_lot",
+        ],
+        raw: true,
+      });
+
+      if (!partMaster) {
+        console.log(`Part master not found for partno: ${partno}`);
+        return null;
+      }
+
+      const wib = moment(createDate).utcOffset("+07:00");
+      const requestDate = wib.format("YYYYMMDD");
+      const requestTime = wib.format("HHmm");
+
+      const cycle = await WH_M_CYCLE.findOne({
+        where: { active_flag: true },
+        attributes: ["cycle_id", "cycle_etd", "cycle_eta"],
+        raw: true,
+      });
+
+      if (!cycle) {
+        console.log("No active cycle found");
+        return null;
+      }
+
+      const requestNo = await this.generateRequestNo();
+
+      const iwtrOrderData = {
+        REQUEST_NO: requestNo,
+        LINE_NO: 1,
+        LOT_FORM_ID: lotFormId,
+        WAREHOUSE_FROM: "2",
+        WAREHOUSE_TO: "3",
+        REQUEST_DATE: requestDate,
+        DELIVERY_DATE: requestDate,
+        CYCLE_ID: cycle.cycle_id,
+        CYCLE_ETD: cycle.cycle_etd,
+        CYCLE_ETA: cycle.cycle_eta,
+        PARTNO: partno,
+        PART_NAME: partMaster.part_name,
+        ORDER_QTY: partMaster.qty_lot * partMaster.std_lot_form,
+        TAG_QTY: partMaster.qty_lot,
+        MULQY: partMaster.std_lot_form,
+        LOTSZ: partMaster.qty_after_ls,
+        STATUS: "P",
+        USER_EMP_ID: createBy,
+        REQUEST_TIME: requestTime,
+        ITCLS: partMaster.class_id,
+        ITTYP: partMaster.type_id,
+        UNMSR: partMaster.measure_id,
+        WHLOCFROM: partMaster.wh_location,
+      };
+
+      const createdOrder = await IWTR_T_ORDER.create(iwtrOrderData, {
+        transaction: transaction,
+      });
+      console.log(`Created IWTR order: ${requestNo} for partno: ${partno}`);
+      return createdOrder;
+    } catch (error) {
+      console.error(`Error creating IWTR order for partno ${partno}:`, error);
+      throw error;
+    }
+  }
+
   static async processStockoutData(data, NPK, timeScan) {
     const processedData = [];
     const failedProcessedData = [];
@@ -106,7 +202,13 @@ export class StockoutService {
 
   static async lotFormDataProcess(lotFormData) {
     try {
+      const partsToAggregateOnCommit = new Set();
+
       for (const item of lotFormData) {
+        const transaction = await LS_T_LOT_FORM.sequelize.transaction({
+          isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ,
+        });
+
         try {
           const currentDataLotForm = await LS_T_LOT_FORM.findOne({
             attributes: [
@@ -126,6 +228,8 @@ export class StockoutService {
               wh_code: item.wh_code,
               line_id: item.line_id,
             },
+            transaction,
+            lock: transaction.LOCK.UPDATE,
           });
 
           if (currentDataLotForm) {
@@ -142,13 +246,19 @@ export class StockoutService {
                   where: {
                     id: currentDataLotForm.id,
                   },
+                  transaction,
                 },
               );
 
-              await this.updateOrderStatusAndTriggerAggregation(
+              await this.createIWTROrder(
+                currentDataLotForm.id,
                 item.partno,
+                item.create_by,
                 item.create_date,
+                transaction,
               );
+
+              partsToAggregateOnCommit.add(item.partno);
             } else {
               await LS_T_LOT_FORM.update(
                 {
@@ -160,43 +270,65 @@ export class StockoutService {
                   where: {
                     id: currentDataLotForm.id,
                   },
+                  transaction,
                 },
               );
             }
           } else if (item.kbn_std == 1) {
-            await LS_T_LOT_FORM.create({
-              partno: item.partno,
-              kbn_scan: 1,
-              kbn_lot: item.kbn_lot,
-              kbn_std: item.kbn_std,
-              create_by: item.create_by,
-              create_date: literal("GETDATE()"),
-              line_id: item.line_id,
-              qty_scan: item.qty_scan,
-              wh_code: item.wh_code,
-              status: 1,
-            });
-
-            await this.updateOrderStatusAndTriggerAggregation(
-              item.partno,
-              item.create_date,
+            const createdLotForm = await LS_T_LOT_FORM.create(
+              {
+                partno: item.partno,
+                kbn_scan: 1,
+                kbn_lot: item.kbn_lot,
+                kbn_std: item.kbn_std,
+                create_by: item.create_by,
+                create_date: literal("GETDATE()"),
+                line_id: item.line_id,
+                qty_scan: item.qty_scan,
+                wh_code: item.wh_code,
+                status: 1,
+              },
+              { transaction },
             );
+
+            await this.createIWTROrder(
+              createdLotForm.id,
+              item.partno,
+              item.create_by,
+              item.create_date,
+              transaction,
+            );
+
+            partsToAggregateOnCommit.add(item.partno);
           } else {
-            await LS_T_LOT_FORM.create({
-              partno: item.partno,
-              kbn_scan: 1,
-              kbn_lot: item.kbn_lot,
-              kbn_std: item.kbn_std,
-              create_by: item.create_by,
-              create_date: literal("GETDATE()"),
-              line_id: item.line_id,
-              qty_scan: item.qty_scan,
-              wh_code: item.wh_code,
-            });
+            await LS_T_LOT_FORM.create(
+              {
+                partno: item.partno,
+                kbn_scan: 1,
+                kbn_lot: item.kbn_lot,
+                kbn_std: item.kbn_std,
+                create_by: item.create_by,
+                create_date: literal("GETDATE()"),
+                line_id: item.line_id,
+                qty_scan: item.qty_scan,
+                wh_code: item.wh_code,
+              },
+              { transaction },
+            );
           }
+
+          await transaction.commit();
         } catch (error) {
+          await transaction.rollback();
           console.log("ada error saat proses lot form: ", error);
         }
+      }
+
+      // Trigger aggregation SETELAH semua commits berhasil - aggregation baca data terbaru
+      if (partsToAggregateOnCommit.size > 0) {
+        await this.updateCycleChartAggregation(
+          Array.from(partsToAggregateOnCommit),
+        );
       }
 
       await WaitingLotFormService.updateAndBroadcastWaitingLotForm();
@@ -205,44 +337,15 @@ export class StockoutService {
     }
   }
 
-  static async updateOrderStatusAndTriggerAggregation(partno, timeScan) {
+  static async updateCycleChartAggregation(partnosArray) {
     try {
-      const wib = moment(timeScan).utcOffset("+07:00");
-      const formattedDate = wib.format("YYYYMMDD");
-
-      const ordersToUpdate = await IWTR_T_ORDER.findAll({
-        where: {
-          PARTNO: partno,
-          REQUEST_DATE: formattedDate,
-          [Op.or]: [{ STATUS: null }, { STATUS: { [Op.ne]: "C" } }],
-        },
-        attributes: ["REQUEST_NO", "LINE_NO"],
-        raw: true,
-      });
-
-      if (ordersToUpdate.length > 0) {
-        await IWTR_T_ORDER.update(
-          { STATUS: "P" },
-          {
-            where: {
-              PARTNO: partno,
-              REQUEST_DATE: formattedDate,
-              [Op.or]: [{ STATUS: null }, { STATUS: { [Op.ne]: "C" } }],
-            },
-          },
-        );
-
-        console.log(
-          `Updated ${ordersToUpdate.length} order(s) to status 'P' for partno: ${partno}`,
-        );
-
-        await AggregationService.updateCycleChartData();
-      }
-    } catch (error) {
-      console.error(
-        "Error updating order status and triggering aggregation:",
-        error,
+      const parts = Array.isArray(partnosArray) ? partnosArray : [partnosArray];
+      console.log(
+        `Triggering aggregation AFTER commit for ${parts.length} part(s): ${parts.join(", ")}`,
       );
+      await AggregationService.updateCycleChartData();
+    } catch (error) {
+      console.error("Error triggering cycle chart aggregation:", error);
     }
   }
 
